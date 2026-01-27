@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Atmospheric Causality - Zonal Profile</title>
+    <title>Atmospheric Causality - Path Integrated</title>
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
     <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
@@ -22,11 +22,11 @@
         #map { position: absolute; top: 0; bottom: 0; width: 100%; z-index: 1; }
         
         .console { 
-            position: absolute; top: 15px; left: 15px; width: 440px; max-height: 95vh;
+            position: absolute; top: 15px; left: 15px; width: 460px; max-height: 95vh;
             background: var(--glass); padding: 24px; border-radius: 12px; 
             border: 1px solid rgba(255,255,255,0.1); z-index: 100;
             box-shadow: 0 20px 60px rgba(0,0,0,0.6); backdrop-filter: blur(10px);
-            display: flex; flex-direction: column; gap: 10px; overflow-y: auto;
+            display: flex; flex-direction: column; gap: 14px; overflow-y: auto;
         }
 
         h1 { font-size: 10px; color: var(--accent); margin: 0; letter-spacing: 2.5px; font-weight: 800; text-transform: uppercase; opacity: 0.8; }
@@ -43,7 +43,7 @@
         .passport-label { color: #8b949e; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
         .passport-value { color: var(--accent); font-weight: 700; font-family: monospace; font-size: 13px; }
 
-        /* LEGEND STYLES (Moved Up) */
+        /* LEGEND STYLES */
         .legend-container { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 5px; }
         .legend-label-row { display: flex; justify-content: space-between; align-items: center; font-size: 9px; font-weight: 800; color: #777; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
         .legend-metric-row { display: flex; justify-content: space-between; font-size: 10px; font-weight: 600; color: #8b949e; margin-top: 4px; }
@@ -57,7 +57,7 @@
         .toggle-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
         .toggle-btn.active { background: var(--wb-blue); color: #fff; border-color: rgba(255,255,255,0.2); }
 
-        /* TARGET QUESTION (Moved Here) */
+        /* TARGET QUESTION */
         .target-question {
             font-size: 13px; color: #a5d5d8; font-style: italic; line-height: 1.5;
             padding: 10px 12px; background: rgba(0, 242, 255, 0.05); border-left: 2px solid var(--accent);
@@ -114,7 +114,6 @@
             line-height: 1.4; text-align: left; margin-bottom: 8px; font-weight: 400; text-transform: none;
         }
         .info-wrapper:hover .tooltip-content { opacity: 1; visibility: visible; }
-        /* Arrow for tooltip */
         .tooltip-content::after {
             content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px;
             border-width: 5px; border-style: solid; border-color: rgba(13,17,23,0.98) transparent transparent transparent;
@@ -170,7 +169,7 @@
                 <span class="passport-label">Total Surface Area</span>
                 <div class="info-wrapper">
                     <div class="info-trigger"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg></div>
-                    <div class="tooltip-content">Cumulative land area of all grids physically linked via atmospheric moisture transport.</div>
+                    <div class="tooltip-content">Cumulative land area of all linked grids, including interpolated path segments filling spatial gaps.</div>
                 </div>
             </div>
             <span class="passport-value" id="val-surface">--</span>
@@ -230,6 +229,7 @@
     });
 
     let currentMode = 'driver'; let upwindLookup, downwindLookup = {}, pointDataCache = {};
+    let coordToId = {}; // Spatial Index for Interpolation
     let hoveredId = null, lockedId = null, activeIds = [], myBarChart = null;
     let isForestVisible = false;
     let useMetric = true; 
@@ -247,7 +247,7 @@
         return [0,0]; 
     }
 
-    // --- MATH ---
+    // --- MATH & SPATIAL HELPERS ---
     function getDistanceKm(coord1, coord2) {
         const R = 6371; 
         const dLat = (coord2[1] - coord1[1]) * Math.PI / 180;
@@ -264,6 +264,15 @@
         return height * width;
     }
 
+    function getSpatialKey(lng, lat) {
+        // Grid is 0.25 degree. Round to nearest 0.25 bucket.
+        // e.g., 4.12 -> 4.0 or 4.25
+        // Multiply by 4, round, divide by 4. But for key, just int is fine.
+        const x = Math.round(lng * 4);
+        const y = Math.round(lat * 4);
+        return `${x}_${y}`;
+    }
+
     async function initApp() {
         try {
             const [geoRes, lookupRes] = await Promise.all([fetch('final_dashboard_data.geojson'), fetch('lookup_0p25_sanitized.json')]);
@@ -271,14 +280,22 @@
 
             geojson.features.forEach(f => {
                 const id = f.properties.id;
+                
+                // Build Downwind Lookup (Source -> Sink)
                 if(!downwindLookup[id]) downwindLookup[id] = [];
                 (upwindLookup[String(id)] || []).forEach(srcId => {
                     if(!downwindLookup[srcId]) downwindLookup[srcId] = [];
                     downwindLookup[srcId].push(id);
                 });
+                
                 const center = getCentroid(f.geometry);
                 const area = getGridAreaKm2(center[1]); 
                 const preloadedAdmin = f.properties.admin1_name || f.properties.NAME_1 || null;
+                
+                // Build Spatial Index for Interpolation
+                const key = getSpatialKey(center[0], center[1]);
+                coordToId[key] = id;
+
                 pointDataCache[id] = { 
                     ...f.properties, 
                     adminName: preloadedAdmin, 
@@ -292,6 +309,7 @@
             map.on('load', () => {
                 map.addSource('grid-source', { type: 'geojson', data: geojson, promoteId: 'id' });
                 
+                // LAYERS
                 map.addLayer({ 'id': 'grid-context', 'type': 'fill', 'source': 'grid-source', 'paint': { 'fill-color': PALETTE_FOREST, 'fill-opacity': 0.1 } });
                 map.addLayer({ 'id': 'grid-primary', 'type': 'fill', 'source': 'grid-source', 'paint': { 'fill-color': PALETTE_FOREST, 'fill-opacity': 0.7 } });
                 map.addLayer({ 'id': 'grid-reveal', 'type': 'fill', 'source': 'grid-source', 'paint': { 'fill-color': PALETTE_PRECIP, 'fill-opacity': 0.7 }, 'filter': ['in', 'id', ''] });
@@ -302,11 +320,7 @@
                     'paint': { 'fill-color': '#00ff99', 'fill-opacity': 0, 'fill-outline-color': '#00ff99' }
                 });
 
-                map.addLayer({
-                    'id': 'national-borders', 'type': 'line', 'source': 'composite', 'source-layer': 'admin',
-                    'filter': ['all', ['==', 'admin_level', 2], ['==', 'maritime', 0]],
-                    'paint': { 'line-color': '#ffffff', 'line-width': 1.5, 'line-opacity': 0.8 }
-                });
+                map.addLayer({ 'id': 'national-borders', 'type': 'line', 'source': 'composite', 'source-layer': 'admin', 'filter': ['all', ['==', 'admin_level', 2], ['==', 'maritime', 0]], 'paint': { 'line-color': '#ffffff', 'line-width': 1.5, 'line-opacity': 0.8 } });
 
                 map.addLayer({ 'id': 'grid-links', 'type': 'line', 'source': 'grid-source', 'paint': { 'line-width': 2.5, 'line-dasharray': [2, 1], 'line-color': ['case', ['==', ['feature-state', 'health'], 'bad'], '#ff4d4d', '#00e676'], 'line-opacity': ['case', ['boolean', ['feature-state', 'active'], false], 1, 0] } });
                 map.addLayer({ 'id': 'grid-focus', 'type': 'line', 'source': 'grid-source', 'paint': { 'line-color': '#fff', 'line-width': ['case', ['boolean', ['feature-state', 'focused'], false], 3, 0] } });
@@ -341,10 +355,7 @@
         btn.innerText = useMetric ? "KM" : "MI";
         if ((hoveredId || lockedId) && currentMode) {
             const targetId = lockedId || hoveredId;
-            const stats = pointDataCache[targetId];
-            const rawLinked = currentMode === 'driver' ? stats.connections_down : stats.connections_up;
-            const validatedLinked = [...new Set(rawLinked.filter(lid => pointDataCache[lid]))];
-            updateUI(targetId, stats, validatedLinked);
+            highlightGrid(targetId); // Re-run highlight to refresh interpolation & UI with new units
         }
     };
 
@@ -379,7 +390,7 @@
         
         document.getElementById('dynamic-content').style.opacity = currentMode ? 1 : 0;
         document.getElementById('passport-header').style.opacity = 0; 
-        document.getElementById('legend-panel').style.opacity = 0; // Hide Legend in Neutral
+        document.getElementById('legend-panel').style.opacity = 0; 
         
         if (!currentMode) {
             document.getElementById('dynamic-content').style.pointerEvents = 'none';
@@ -392,27 +403,78 @@
         }
     }
 
+    // --- MAIN ENGINE: HIGHLIGHT + TRAJECTORY INTERPOLATION ---
     function highlightGrid(id) {
-        if(!currentMode) return;
-        if(hoveredId === id) return; hoveredId = id;
+        if(hoveredId === id && !useMetric) return; // Optimization, but allow re-run if units changed
+        hoveredId = id;
+        
+        // Reset previous states
         activeIds.forEach(idx => map.setFeatureState({source:'grid-source', id:idx}, {active:false, focused:false, health:null}));
         
         const stats = pointDataCache[id]; if(!stats) return;
-        const rawLinked = currentMode === 'driver' ? stats.connections_down : stats.connections_up;
-        const validatedLinked = [...new Set(rawLinked.filter(lid => pointDataCache[lid]))];
         
-        activeIds = [id, ...validatedLinked];
+        // 1. Get Linked IDs
+        const rawLinked = currentMode === 'driver' ? stats.connections_down : stats.connections_up;
+        let validLinked = [...new Set(rawLinked)].filter(lid => pointDataCache[lid]);
+
+        // 2. Sort by distance to reconstruct "flow"
+        validLinked.sort((a,b) => {
+            const distA = getDistanceKm(stats.centroid, pointDataCache[a].centroid);
+            const distB = getDistanceKm(stats.centroid, pointDataCache[b].centroid);
+            return distA - distB;
+        });
+
+        // 3. Interpolate Gaps (The "Path-Integrated" Logic)
+        const fullPathIds = new Set(validLinked);
+        fullPathIds.add(id); // Include self
+
+        // Construct path: [Source, ...SortedLinks]
+        let pathPoints = [id, ...validLinked];
+
+        for(let i=0; i<pathPoints.length-1; i++) {
+            const p1 = pointDataCache[pathPoints[i]].centroid;
+            const p2 = pointDataCache[pathPoints[i+1]].centroid;
+            
+            // Calculate Euclidean distance in Grid Units (Degree Approximation)
+            const distDeg = Math.sqrt(Math.pow(p2[0]-p1[0], 2) + Math.pow(p2[1]-p1[1], 2));
+            
+            // If gap > 0.3 degrees (adjacent diagonal is ~0.35), interpolate
+            // 0.25 grid size. Adjacent center-to-center is 0.25. Diagonal is 0.35.
+            if(distDeg > 0.35) {
+                // Number of steps to fill. 
+                const steps = Math.floor(distDeg / 0.25);
+                for(let s=1; s<=steps; s++) {
+                    const t = s / (steps+1);
+                    const interpLng = p1[0] + (p2[0]-p1[0])*t;
+                    const interpLat = p1[1] + (p2[1]-p1[1])*t;
+                    
+                    // Lookup ID for interpolated coordinate
+                    const key = getSpatialKey(interpLng, interpLat);
+                    if(coordToId[key]) {
+                        fullPathIds.add(coordToId[key]);
+                    }
+                }
+            }
+        }
+
+        const finalIds = Array.from(fullPathIds);
+        activeIds = finalIds; // Update global tracking for reset
+
+        // 4. Update Map State
         map.setFeatureState({source:'grid-source', id}, {focused:true});
 
-        validatedLinked.forEach(lid => {
+        finalIds.forEach(lid => {
             const l = pointDataCache[lid];
-            const isBad = currentMode === 'driver' ? (l.precip_change_pct < 0) : (l.forest_loss_pct > 10);
-            map.setFeatureState({source:'grid-source', id:lid}, {active:true, health: isBad ? 'bad' : 'good'});
+            if(l) {
+                const isBad = currentMode === 'driver' ? (l.precip_change_pct < 0) : (l.forest_loss_pct > 10);
+                map.setFeatureState({source:'grid-source', id:lid}, {active:true, health: isBad ? 'bad' : 'good'});
+            }
         });
 
         map.setFilter('grid-primary', ['in', 'id', '']); 
         map.setFilter('grid-reveal', ['in', ['get', 'id'], ['literal', activeIds]]);
-        updateUI(id, stats, validatedLinked);
+        
+        updateUI(id, stats, finalIds);
         if (!stats.adminName) fetchAdminName(id);
     }
 
@@ -421,7 +483,7 @@
         document.getElementById('location-text').innerText = locName;
         document.getElementById('node-text').innerText = `DATA NODE: ${id}`;
         
-        // Show Passport Header & Legend
+        // Show Headers
         document.getElementById('passport-header').style.opacity = 1;
         document.getElementById('legend-panel').style.opacity = 1;
 
