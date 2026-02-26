@@ -2,14 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Atmospheric Causality - Path Integrated</title>
+    <title>Atmospheric Causality - Pilot Dashboard</title>
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
     <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
@@ -29,54 +27,43 @@
             display: flex; flex-direction: column; gap: 14px; overflow-y: auto;
         }
 
-        h1 { font-size: 10px; color: var(--accent); margin: 0; letter-spacing: 2.5px; font-weight: 800; text-transform: uppercase; opacity: 0.8; }
+        h1 { font-size: 10px; color: var(--accent); margin: 0; letter-spacing: 2.5px; font-weight: 800; text-transform: uppercase; opacity: 0.8; padding-right: 90px; }
         .location-header { font-size: 22px; font-weight: 700; color: #fff; margin-top: 2px; letter-spacing: -0.5px; line-height: 1.1; }
-        .node-ref { font-size: 10px; color: #8b949e; font-family: monospace; text-transform: uppercase; margin-bottom: 2px; }
         
-        /* PASSPORT HEADER STYLES */
-        .passport-header {
-            display: flex; flex-direction: column; gap: 6px; margin-bottom: 5px;
-            padding-bottom: 12px; border-bottom: 1px solid var(--border);
-        }
+        /* INLINE LOCK BADGE */
+        .node-ref { font-size: 10px; color: #8b949e; font-family: monospace; text-transform: uppercase; margin-bottom: 2px; display: flex; align-items: center; }
+        .lock-badge { display: none; background: var(--accent); color: #000; font-weight: 800; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-size: 9px; letter-spacing: 0.5px; }
+
+        .passport-header { display: flex; flex-direction: column; gap: 6px; margin-bottom: 5px; padding-bottom: 12px; border-bottom: 1px solid var(--border); opacity: 0; transition: opacity 0.3s; }
         .passport-row { display: flex; justify-content: space-between; align-items: center; font-size: 11px; }
-        .passport-label-group { display: flex; align-items: center; gap: 5px; }
+        .passport-label-group { display: flex; align-items: center; gap: 6px; }
         .passport-label { color: #8b949e; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
         .passport-value { color: var(--accent); font-weight: 700; font-family: monospace; font-size: 13px; }
 
-        /* LEGEND STYLES */
-        .legend-container { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 5px; }
+        .legend-container { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 5px; opacity: 0; transition: opacity 0.3s; }
         .legend-label-row { display: flex; justify-content: space-between; align-items: center; font-size: 9px; font-weight: 800; color: #777; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
         .legend-metric-row { display: flex; justify-content: space-between; font-size: 10px; font-weight: 600; color: #8b949e; margin-top: 4px; }
         .legend-bar { height: 6px; width: 100%; border-radius: 3px; }
 
         .view-toggles { display: flex; gap: 8px; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 8px; }
-        .toggle-btn { 
-            flex: 1; text-align: center; padding: 10px; font-size: 11px; font-weight: 700; 
-            cursor: pointer; border-radius: 6px; color: #8b949e; border: 1px solid transparent; transition: all 0.2s;
-        }
+        .toggle-btn { flex: 1; text-align: center; padding: 10px; font-size: 11px; font-weight: 700; cursor: pointer; border-radius: 6px; color: #8b949e; border: 1px solid transparent; transition: all 0.2s; }
         .toggle-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
         .toggle-btn.active { background: var(--wb-blue); color: #fff; border-color: rgba(255,255,255,0.2); }
 
-        /* TARGET QUESTION */
-        .target-question {
-            font-size: 13px; color: #a5d5d8; font-style: italic; line-height: 1.5;
-            padding: 10px 12px; background: rgba(0, 242, 255, 0.05); border-left: 2px solid var(--accent);
-            border-radius: 0 4px 4px 0; margin-top: 5px;
-        }
+        .disclaimer-panel { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); padding: 16px; border-radius: 8px; margin-top: 10px; }
+        .disclaimer-panel h3 { font-size: 11px; color: var(--accent); margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 1px; }
+        .disclaimer-panel p { font-size: 12px; line-height: 1.5; color: #acb1b9; margin: 0 0 12px 0; }
+        .method-tag { font-size: 10px; font-weight: 700; color: var(--wb-blue); background: var(--accent); padding: 2px 6px; border-radius: 4px; display: inline-block; margin-bottom: 4px; }
 
-        .status-banner {
-            padding: 12px 14px; border-radius: 6px; font-weight: 800; font-size: 12px;
-            text-transform: uppercase; letter-spacing: 1px; display: flex; flex-direction: column; gap: 2px;
-        }
+        .analytics-wrapper { display: none; flex-direction: column; gap: 12px; }
+        .target-question { font-size: 13px; color: #a5d5d8; font-style: italic; line-height: 1.5; padding: 10px 12px; background: rgba(0, 242, 255, 0.05); border-left: 2px solid var(--accent); border-radius: 0 4px 4px 0; margin-top: 5px; }
+
+        .status-banner { padding: 12px 14px; border-radius: 6px; font-weight: 800; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; display: flex; flex-direction: column; gap: 2px; }
         .status-secured { background: rgba(0, 230, 118, 0.1); color: var(--success); border: 1px solid rgba(0, 230, 118, 0.3); }
         .status-warning { background: rgba(255, 211, 61, 0.1); color: var(--warning); border: 1px solid rgba(255, 211, 61, 0.3); }
         .status-critical { background: rgba(255, 77, 77, 0.1); color: var(--danger); border: 1px solid rgba(255, 77, 77, 0.3); }
 
-        .chart-container {
-            position: relative; width: 100%; margin-top: 5px;
-            background: rgba(0,0,0,0.2); border-radius: 8px; padding: 15px; box-sizing: border-box;
-            display: flex; flex-direction: column; gap: 8px;
-        }
+        .chart-container { position: relative; width: 100%; margin-top: 5px; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 15px; box-sizing: border-box; display: flex; flex-direction: column; gap: 8px; }
         .chart-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 5px;}
         .chart-box { width: 100%; height: 50px; }
         .legend-bar-item { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #ccc; }
@@ -85,80 +72,114 @@
         .standard-text { font-size: 13px; line-height: 1.6; color: #acb1b9; }
         .standard-text strong { color: #fff; font-weight: 600; }
 
+        /* CONTROLS (CLEANED UP) */
         .controls { position: absolute; top: 15px; right: 20px; display: flex; gap: 8px; z-index: 200; align-items: center; }
-        #lock-indicator { font-size: 10px; font-weight: 800; color: #000; background: var(--accent); padding: 4px 8px; border-radius: 4px; display: none; height: fit-content; margin-right: 10px; }
-        
-        .icon-btn { 
-            cursor: pointer; opacity: 0.7; transition: all 0.2s; 
-            background: rgba(255,255,255,0.08); padding: 6px 8px; border-radius: 6px; 
-            border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center;
-            color: #ccc; font-size: 10px; font-weight: 700; text-transform: uppercase;
-        }
+        .icon-btn { cursor: pointer; opacity: 0.7; transition: all 0.2s; background: rgba(255,255,255,0.08); padding: 6px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 10px; font-weight: 700; text-transform: uppercase; }
         .icon-btn:hover { opacity: 1; background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); }
         .icon-btn.active { background: #238636; border-color: #469c56; box-shadow: 0 0 12px rgba(35, 134, 54, 0.4); opacity: 1; color:#fff; }
-        .icon-btn svg { fill: #c9d1d9; width: 18px; height: 18px; }
-        .icon-btn.active svg { fill: #ffffff; }
 
-        /* TOOLTIP SYSTEM */
-        .info-wrapper { position: relative; display: inline-flex; align-items: center; }
-        .info-trigger { cursor: help; opacity: 0.4; transition: opacity 0.2s; margin-left: 4px; display: flex; }
+        /* TOOLTIPS */
+        .info-wrapper { position: relative; display: inline-flex; align-items: center; justify-content: center; }
+        .info-trigger { cursor: help; opacity: 0.5; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; width: 14px; height: 14px; }
         .info-trigger:hover { opacity: 1; }
-        .info-trigger svg { width: 12px; height: 12px; fill: #8b949e; }
         
-        .tooltip-content {
-            position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); width: 220px;
-            background: rgba(13, 17, 23, 0.98); border: 1px solid rgba(255,255,255,0.2);
-            color: #e6edf3; font-size: 11px; padding: 10px; border-radius: 6px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(5px);
-            opacity: 0; visibility: hidden; transition: all 0.2s; pointer-events: none; z-index: 300;
-            line-height: 1.4; text-align: left; margin-bottom: 8px; font-weight: 400; text-transform: none;
-        }
+        .tooltip-content { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); width: 220px; background: rgba(13, 17, 23, 0.98); border: 1px solid rgba(255,255,255,0.2); color: #e6edf3; font-size: 11px; padding: 10px; border-radius: 6px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(5px); opacity: 0; visibility: hidden; transition: all 0.2s; pointer-events: none; z-index: 300; line-height: 1.4; text-align: left; margin-bottom: 8px; font-weight: 400; text-transform: none; }
         .info-wrapper:hover .tooltip-content { opacity: 1; visibility: visible; }
-        .tooltip-content::after {
-            content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px;
-            border-width: 5px; border-style: solid; border-color: rgba(13,17,23,0.98) transparent transparent transparent;
-        }
+        .tooltip-content::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: rgba(13,17,23,0.98) transparent transparent transparent; }
+
+        /* MODAL OVERLAY STYLES */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(1, 4, 9, 0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1000; transition: opacity 0.4s ease; }
+        .modal-content { background: var(--glass); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 32px; width: 600px; max-width: 90%; box-shadow: 0 24px 80px rgba(0,0,0,0.8); display: flex; flex-direction: column; gap: 16px; }
+        .modal-tag { font-size: 10px; font-weight: 800; color: var(--wb-blue); background: var(--accent); padding: 4px 8px; border-radius: 4px; align-self: flex-start; text-transform: uppercase; letter-spacing: 1px; }
+        .modal-title { font-size: 24px; font-weight: 700; color: #fff; margin: 0; letter-spacing: -0.5px; }
+        .modal-text { font-size: 13px; line-height: 1.6; color: #acb1b9; margin: 0; }
+        .modal-text strong { color: #fff; font-weight: 600; }
+        
+        .tutorial-box { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 16px; }
+        .tutorial-title { font-size: 11px; color: #fff; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; font-weight: 700; }
+        .tutorial-list { font-size: 13px; color: #acb1b9; line-height: 1.6; padding-left: 20px; margin: 0; }
+        .tutorial-list li { margin-bottom: 6px; }
+        
+        .caveat-box { background: rgba(255, 211, 61, 0.1); border-left: 3px solid var(--warning); padding: 12px 16px; border-radius: 0 4px 4px 0; }
+        
+        .btn-start { background: var(--wb-blue); color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 14px; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; text-align: center; transition: all 0.2s; margin-top: 8px; }
+        .btn-start:hover { background: var(--accent); color: #000; border-color: var(--accent); }
+
+        /* COUNTRY NAV */
+        .country-nav { margin-top: auto; padding-top: 15px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+        .nav-label { font-size: 10px; text-transform: uppercase; color: #8b949e; font-weight: 700; letter-spacing: 1px; }
+        .nav-controls { display: flex; gap: 8px; }
+        .country-select { flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 8px; border-radius: 6px; font-family: 'Inter', sans-serif; font-size: 12px; outline: none; cursor: pointer; }
+        .reset-btn { padding: 8px 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; cursor: pointer; color: #ccc; font-size: 11px; font-weight: 600; transition: all 0.2s; }
+        .reset-btn:hover { background: rgba(255,255,255,0.2); color: #fff; }
     </style>
 </head>
 <body>
+
+<div id="welcome-modal" class="modal-overlay">
+    <div class="modal-content">
+        <span class="modal-tag">Pilot Dashboard v1.67</span>
+        <h2 class="modal-title">Atmospheric Causality & Invisible Water</h2>
+        <p class="modal-text">Welcome. This interactive platform visualizes the physical causality between forest ecosystems and downwind rainfall stability to support evidence-based conservation strategies in West Africa.</p>
+        
+        <div class="tutorial-box">
+            <div class="tutorial-title">How to use this tool:</div>
+            <ol class="tutorial-list">
+                <li><strong>Select a Mode:</strong> Use the left panel to toggle between <em>Sink Analysis</em> (identifying rainfall vulnerability) and <em>Source Analysis</em> (identifying critical forest nodes).</li>
+                <li><strong>Hover to Model:</strong> Move your cursor over any active map grid to instantly compute and visualize its atmospheric moisture pathways.</li>
+                <li><strong>Click to Lock:</strong> Click on a grid to lock the view, allowing you to examine the side-panel analytics and "Climate Passport" metrics in detail.</li>
+            </ol>
+        </div>
+
+        <div class="caveat-box">
+            <p class="modal-text" style="color: #ffd33d;"><strong>Work in Progress (Pilot Status):</strong><br>
+            Please note that the analytical models driving this visualization are subject to ongoing refinement. Data paths are reconstructed via centroid interpolation using Lagrangian moisture tracking models and CHIRPS datasets. Spatial trajectories should be interpreted as scientific estimations rather than absolute definitive boundaries.</p>
+        </div>
+
+        <div class="btn-start" onclick="closeModal()">Acknowledge & Access Dashboard</div>
+    </div>
+</div>
 
 <div id="map"></div>
 
 <div class="console" id="main-panel">
     <div class="controls">
-        <div id="lock-indicator">LOCKED</div>
-        
         <div id="btn-unit" class="icon-btn" onclick="toggleUnits()" title="Switch Units (Metric/Imperial)" style="width:24px;">KM</div>
-
+        
         <div style="position: relative; display: flex; align-items: center; margin-left:8px;">
             <div id="btn-forest" class="icon-btn" onclick="toggleForest()" title="Toggle Forest Cover Layer">
-                <svg viewBox="0 0 24 24"><path d="M14,6l-3.2,5H13v2h-3v8h-2v-8H5v-2h2.2l-3.2-5H6l3-5l3,5H14z M17,11l-1.6,2.5H16v1h-1v6h-1v-6h-0.6L12,12h1.6L15,9.5L17,11z"/></svg>
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="white"><path d="M14,6l-3.2,5H13v2h-3v8h-2v-8H5v-2h2.2l-3.2-5H6l3-5l3,5H14z M17,11l-1.6,2.5H16v1h-1v6h-1v-6h-0.6L12,12h1.6L15,9.5L17,11z"/></svg>
             </div>
-            <div class="info-wrapper" style="margin-left: 4px;">
-                <div class="info-trigger"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg></div>
+            <div class="info-wrapper" style="margin-left: 6px;">
+                <div class="info-trigger">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8b949e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                </div>
                 <div class="tooltip-content" style="top: 30px; bottom: auto; left: -100px;">
                     <strong>Data Source:</strong><br>High-resolution global forest cover (Class: Wood/Forest) derived from OpenStreetMap & Natural Earth via Mapbox Composite Vector Tiles (2024).
                 </div>
             </div>
         </div>
 
-        <div class="icon-btn" onclick="generateReport()" title="Print View" style="margin-left:8px;">
-            <svg viewBox="0 0 24 24"><path d="M19 8h-1V3H6v5H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zM8 5h8v3H8V5zm8 12v2H8v-4h8v2zm2-2v-2H6v2H4v-4c0-.55.45-1 1-1h14c.55 0 1 .45 1 1v4h-2z"/><circle cx="18" cy="11.5" r="1"/></svg>
-        </div>
+        <div class="icon-btn" onclick="generateReport()" title="Print View" style="margin-left:8px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="white"><path d="M19 8h-1V3H6v5H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zM8 5h8v3H8V5zm8 12v2H8v-4h8v2zm2-2v-2H6v2H4v-4c0-.55.45-1 1-1h14c.55 0 1 .45 1 1v4h-2z"/></svg></div>
     </div>
 
     <h1>Atmospheric Teleconnections</h1>
     <div>
-        <div class="node-ref" id="node-text">MONITORING ACTIVE</div>
+        <div class="node-ref">
+            <span id="node-text">WAITING FOR INPUT</span>
+            <span id="lock-indicator" class="lock-badge">LOCKED</span>
+        </div>
         <div class="location-header" id="location-text">West Africa Regional Dashboard</div>
     </div>
 
-    <div id="passport-header" class="passport-header" style="opacity: 0; transition: opacity 0.3s;">
+    <div id="passport-header" class="passport-header">
         <div class="passport-row">
             <div class="passport-label-group">
                 <span class="passport-label">Max Linkage Range</span>
                 <div class="info-wrapper">
-                    <div class="info-trigger"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg></div>
+                    <div class="info-trigger">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8b949e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    </div>
                     <div class="tooltip-content">Maximum geodesic distance to the furthest connected grid in the moisture network.</div>
                 </div>
             </div>
@@ -168,7 +189,9 @@
             <div class="passport-label-group">
                 <span class="passport-label">Total Surface Area</span>
                 <div class="info-wrapper">
-                    <div class="info-trigger"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg></div>
+                    <div class="info-trigger">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8b949e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    </div>
                     <div class="tooltip-content">Cumulative land area of all linked grids, including interpolated path segments filling spatial gaps.</div>
                 </div>
             </div>
@@ -176,47 +199,75 @@
         </div>
     </div>
 
-    <div class="legend-container" id="legend-panel" style="opacity: 0; transition: opacity 0.3s;">
+    <div class="legend-container" id="legend-panel">
         <div class="legend-label-row">
             <div class="passport-label-group">
-                <span id="legend-title">Vegetation Integrity Index</span>
+                <span id="legend-title">Precipitation Delta</span>
                 <div class="info-wrapper">
-                    <div class="info-trigger"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg></div>
-                    <div class="tooltip-content" id="legend-tooltip">Forest cover loss percentage relative to 2000 baseline. >20% indicates severe degradation.</div>
+                    <div class="info-trigger">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8b949e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    </div>
+                    <div class="tooltip-content" id="legend-tooltip">Percentage deviation in rainfall attributed to upwind land-use modifications.</div>
                 </div>
             </div>
         </div>
-        <div id="legend-bar" class="legend-bar" style="background: linear-gradient(to right, #0a4d1c, #bd2c00);"></div>
-        <div class="legend-metric-row" id="legend-metrics">
-            <span>0% (Intact)</span>
-            <span>20%+ (Loss)</span>
-        </div>
+        <div id="legend-bar" class="legend-bar"></div>
+        <div class="legend-metric-row" id="legend-metrics"></div>
     </div>
     
     <div class="view-toggles">
-        <div id="btn-mode-driver" class="toggle-btn active" onclick="setMode('driver')">SOURCE ANALYSIS</div>
         <div id="btn-mode-impact" class="toggle-btn" onclick="setMode('impact')">SINK ANALYSIS</div>
+        <div id="btn-mode-driver" class="toggle-btn" onclick="setMode('driver')">SOURCE ANALYSIS</div>
     </div>
 
-    <div id="dynamic-content" style="display: flex; flex-direction: column; gap: 12px; transition: opacity 0.3s; opacity: 1;">
-        
-        <div id="target-box" class="target-question">
-            Hover over a grid to initiate spatial relationship modeling. Click to lock view.
+    <div id="dynamic-content">
+        <div id="disclaimer-content" class="disclaimer-panel">
+            <span class="method-tag">Pilot Dashboard</span>
+            <h3>World Bank Dashboard Brief</h3>
+            <p>This is a <strong>Work-in-Progress Pilot</strong> led by the World Bank. The platform visualizes the physical causality between forest cover ecosystems and downwind rainfall stability.</p>
+            <p><strong>Policy Objective:</strong> To quantify the value of "Atmospheric Irrigation" services and identify critical forest nodes whose degradation threatens regional food security.</p>
+            <p><strong>Methodology:</strong> Built on Lagrangian moisture tracking models, CHIRPS precipitation delta datasets, and Global Forest Watch integrity indices. Data paths are reconstructed via centroid interpolation.</p>
+            <p style="color: var(--accent); font-weight: 700; text-align: center; margin-top: 10px;">Select an Analysis Mode above to begin.</p>
         </div>
 
-        <div id="status-container"></div>
-        <div id="intro-text" class="standard-text"></div>
+        <div id="analytics-content" class="analytics-wrapper">
+            <div id="target-box" class="target-question">Select an Analysis Mode above to begin.</div>
+            
+            <div id="status-container"></div>
+            <div id="intro-text" class="standard-text"></div>
 
-        <div class="chart-container">
-            <div class="chart-header">
-                <div class="legend-bar-item"><div class="dot" id="dot-bad"></div> <span id="label-bad">Risk</span>: <strong id="pct-bad">0%</strong></div>
-                <div class="legend-bar-item"><div class="dot" id="dot-good"></div> <span id="label-good">Stable</span>: <strong id="pct-good">0%</strong></div>
+            <div class="chart-container">
+                <div class="chart-header">
+                    <div class="legend-bar-item"><div class="dot" id="dot-bad"></div> <span id="label-bad">Risk</span>: <strong id="pct-bad">0%</strong></div>
+                    <div class="legend-bar-item"><div class="dot" id="dot-good"></div> <span id="label-good">Stable</span>: <strong id="pct-good">0%</strong></div>
+                </div>
+                <div class="chart-box"><canvas id="barChart"></canvas></div>
             </div>
-            <div class="chart-box"><canvas id="barChart"></canvas></div>
+
+            <div id="policy-box" class="standard-text"></div>
         </div>
+    </div>
 
-        <div id="policy-box" class="standard-text"></div>
-
+    <div class="country-nav">
+        <div class="nav-label">Regional Focus</div>
+        <div class="nav-controls">
+            <select id="country-select" class="country-select" onchange="zoomToCountry(this.value)">
+                <option value="">Zoom to Country...</option>
+                <option value="Benin">Benin</option>
+                <option value="Burkina Faso">Burkina Faso</option>
+                <option value="Côte d'Ivoire">Côte d'Ivoire</option>
+                <option value="Ghana">Ghana</option>
+                <option value="Guinea">Guinea</option>
+                <option value="Liberia">Liberia</option>
+                <option value="Mali">Mali</option>
+                <option value="Niger">Niger</option>
+                <option value="Nigeria">Nigeria</option>
+                <option value="Senegal">Senegal</option>
+                <option value="Sierra Leone">Sierra Leone</option>
+                <option value="Togo">Togo</option>
+            </select>
+            <div class="reset-btn" onclick="resetView()">Reset</div>
+        </div>
     </div>
 </div>
 
@@ -228,14 +279,32 @@
         center: [-5.5, 7.5], zoom: 5.5, preserveDrawingBuffer: true
     });
 
-    let currentMode = 'driver'; let upwindLookup, downwindLookup = {}, pointDataCache = {};
-    let coordToId = {}; // Spatial Index for Interpolation
-    let hoveredId = null, lockedId = null, activeIds = [], myBarChart = null;
-    let isForestVisible = false;
-    let useMetric = true; 
-
     const PALETTE_FOREST = ['step', ['get', 'forest_loss_pct'], '#0a4d1c', 0.1, '#238636', 2, '#7ee787', 5, '#ffd33d', 10, '#f66a0a', 20, '#bd2c00'];
     const PALETTE_PRECIP = ['step', ['get', 'precip_change_pct'], '#550b1d', -15, '#933b41', -10, '#cf7c79', -5, '#ffbcaf', -2, '#ffffff', 2, '#a5d5d8', 5, '#73a2c6'];
+
+    let currentMode = null; 
+    let upwindLookup, downwindLookup = {}, pointDataCache = {};
+    let coordToId = {}; 
+    let hoveredId = null, lockedId = null, activeIds = [], myBarChart = null;
+    let isForestVisible = false, useMetric = true; 
+
+    const countryBounds = {
+        "Benin": [0.7, 6.0, 4.0, 12.5], "Burkina Faso": [-5.5, 9.0, 2.5, 15.5], "Côte d'Ivoire": [-8.6, 4.0, -2.5, 11.0],
+        "Ghana": [-3.5, 4.5, 1.5, 11.5], "Guinea": [-15.5, 7.0, -7.5, 13.0], "Liberia": [-11.5, 4.0, -7.0, 9.0],
+        "Mali": [-12.5, 10.0, 4.5, 25.0], "Niger": [0.0, 11.0, 16.0, 24.0], "Nigeria": [2.5, 4.0, 15.0, 14.0],
+        "Senegal": [-17.8, 12.0, -11.0, 17.0], "Sierra Leone": [-13.5, 6.5, -10.0, 10.0], "Togo": [-0.2, 6.0, 2.0, 11.5]
+    };
+
+    const countryISO3 = {
+        "Benin": "BEN", "Burkina Faso": "BFA", "Côte d'Ivoire": "CIV", "Ghana": "GHA", "Guinea": "GIN", "Liberia": "LBR",
+        "Mali": "MLI", "Niger": "NER", "Nigeria": "NGA", "Senegal": "SEN", "Sierra Leone": "SLE", "Togo": "TGO"
+    };
+
+    function closeModal() {
+        const modal = document.getElementById('welcome-modal');
+        modal.style.opacity = '0';
+        setTimeout(() => { modal.style.display = 'none'; }, 400);
+    }
 
     function getCentroid(geometry) {
         if (geometry.type === 'Point') return geometry.coordinates;
@@ -247,30 +316,20 @@
         return [0,0]; 
     }
 
-    // --- MATH & SPATIAL HELPERS ---
     function getDistanceKm(coord1, coord2) {
         const R = 6371; 
         const dLat = (coord2[1] - coord1[1]) * Math.PI / 180;
         const dLon = (coord2[0] - coord1[0]) * Math.PI / 180;
-        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                  Math.cos(coord1[1] * Math.PI / 180) * Math.cos(coord2[1] * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        return R * c;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(coord1[1] * Math.PI / 180) * Math.cos(coord2[1] * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     }
 
     function getGridAreaKm2(lat) {
-        const height = 111.32 * 0.25; 
-        const width = 111.32 * 0.25 * Math.cos(lat * Math.PI / 180);
-        return height * width;
+        return 111.32 * 0.25 * 111.32 * 0.25 * Math.cos(lat * Math.PI / 180);
     }
 
     function getSpatialKey(lng, lat) {
-        // Grid is 0.25 degree. Round to nearest 0.25 bucket.
-        // e.g., 4.12 -> 4.0 or 4.25
-        // Multiply by 4, round, divide by 4. But for key, just int is fine.
-        const x = Math.round(lng * 4);
-        const y = Math.round(lat * 4);
-        return `${x}_${y}`;
+        return `${Math.round(lng * 4)}_${Math.round(lat * 4)}`;
     }
 
     async function initApp() {
@@ -281,7 +340,6 @@
             geojson.features.forEach(f => {
                 const id = f.properties.id;
                 
-                // Build Downwind Lookup (Source -> Sink)
                 if(!downwindLookup[id]) downwindLookup[id] = [];
                 (upwindLookup[String(id)] || []).forEach(srcId => {
                     if(!downwindLookup[srcId]) downwindLookup[srcId] = [];
@@ -290,15 +348,12 @@
                 
                 const center = getCentroid(f.geometry);
                 const area = getGridAreaKm2(center[1]); 
-                const preloadedAdmin = f.properties.admin1_name || f.properties.NAME_1 || null;
-                
-                // Build Spatial Index for Interpolation
                 const key = getSpatialKey(center[0], center[1]);
                 coordToId[key] = id;
 
                 pointDataCache[id] = { 
                     ...f.properties, 
-                    adminName: preloadedAdmin, 
+                    adminName: f.properties.admin1_name || f.properties.NAME_1 || null, 
                     centroid: center, 
                     areaKm: area,
                     connections_up: upwindLookup[String(id)] || [], 
@@ -307,12 +362,31 @@
             });
 
             map.on('load', () => {
-                map.addSource('grid-source', { type: 'geojson', data: geojson, promoteId: 'id' });
                 
-                // LAYERS
-                map.addLayer({ 'id': 'grid-context', 'type': 'fill', 'source': 'grid-source', 'paint': { 'fill-color': PALETTE_FOREST, 'fill-opacity': 0.1 } });
-                map.addLayer({ 'id': 'grid-primary', 'type': 'fill', 'source': 'grid-source', 'paint': { 'fill-color': PALETTE_FOREST, 'fill-opacity': 0.7 } });
-                map.addLayer({ 'id': 'grid-reveal', 'type': 'fill', 'source': 'grid-source', 'paint': { 'fill-color': PALETTE_PRECIP, 'fill-opacity': 0.7 }, 'filter': ['in', 'id', ''] });
+                map.addSource('country-polygons', {
+                    type: 'geojson',
+                    data: 'https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson'
+                });
+
+                map.addLayer({
+                    'id': 'country-dimmer-poly',
+                    'type': 'fill',
+                    'source': 'country-polygons',
+                    'paint': {
+                        'fill-color': '#000000',
+                        'fill-opacity': 0 
+                    }
+                });
+
+                map.addSource('grid-source', { type: 'geojson', data: geojson, promoteId: 'id' });
+                map.addLayer({ 'id': 'grid-context', 'type': 'fill', 'source': 'grid-source', 'paint': { 'fill-color': PALETTE_FOREST, 'fill-opacity': 0 } });
+                map.addLayer({ 'id': 'grid-primary', 'type': 'fill', 'source': 'grid-source', 'paint': { 'fill-color': PALETTE_FOREST, 'fill-opacity': 0 } });
+                
+                // PERFORMANCE FIX: grid-reveal no longer uses a filter. Visibility is managed purely through high-performance feature-state opacities.
+                map.addLayer({ 'id': 'grid-reveal', 'type': 'fill', 'source': 'grid-source', 'paint': { 
+                    'fill-color': PALETTE_PRECIP, 
+                    'fill-opacity': ['case', ['boolean', ['feature-state', 'is_core'], false], 0.9, ['boolean', ['feature-state', 'is_interp'], false], 0.35, 0] 
+                } });
 
                 map.addLayer({
                     'id': 'forest-lens', 'type': 'fill', 'source': 'composite', 'source-layer': 'landuse',
@@ -320,22 +394,79 @@
                     'paint': { 'fill-color': '#00ff99', 'fill-opacity': 0, 'fill-outline-color': '#00ff99' }
                 });
 
-                map.addLayer({ 'id': 'national-borders', 'type': 'line', 'source': 'composite', 'source-layer': 'admin', 'filter': ['all', ['==', 'admin_level', 2], ['==', 'maritime', 0]], 'paint': { 'line-color': '#ffffff', 'line-width': 1.5, 'line-opacity': 0.8 } });
+                map.addLayer({ 
+                    'id': 'national-borders', 'type': 'line', 'source': 'composite', 'source-layer': 'admin', 
+                    'filter': ['all', ['<=', 'admin_level', 2], ['==', 'maritime', 0]], 
+                    'paint': { 'line-color': '#ffffff', 'line-width': 1.0, 'line-opacity': 0.3 } 
+                });
 
                 map.addLayer({ 'id': 'grid-links', 'type': 'line', 'source': 'grid-source', 'paint': { 'line-width': 2.5, 'line-dasharray': [2, 1], 'line-color': ['case', ['==', ['feature-state', 'health'], 'bad'], '#ff4d4d', '#00e676'], 'line-opacity': ['case', ['boolean', ['feature-state', 'active'], false], 1, 0] } });
                 map.addLayer({ 'id': 'grid-focus', 'type': 'line', 'source': 'grid-source', 'paint': { 'line-color': '#fff', 'line-width': ['case', ['boolean', ['feature-state', 'focused'], false], 3, 0] } });
 
-                map.on('mousemove', 'grid-primary', e => { if(currentMode && !lockedId && e.features.length) highlightGrid(e.features[0].properties.id); });
+                // Z-INDEX FIX: Placed at the very end to guarantee it sits on top of all grids
+                map.addLayer({
+                    'id': 'country-highlight-line',
+                    'type': 'line',
+                    'source': 'country-polygons',
+                    'paint': {
+                        'line-color': ['case', ['==', ['get', 'ISO_A3'], 'NONE'], '#bf00ff', 'rgba(0,0,0,0)'],
+                        'line-width': 4
+                    }
+                });
+
+                map.on('mousemove', 'grid-primary', e => { if(currentMode && !lockedId && e.features.length) highlightGrid(e.features[0].id); });
                 map.on('click', e => { 
                     if (!currentMode) return;
-                    const f = map.queryRenderedFeatures(e.point, {layers:['grid-primary', 'grid-reveal']});
-                    if(f.length) { lockedId = f[0].properties.id; document.getElementById('lock-indicator').style.display='block'; highlightGrid(lockedId); } 
-                    else { lockedId = null; document.getElementById('lock-indicator').style.display='none'; resetMap(); }
+                    const f = map.queryRenderedFeatures(e.point, {layers:['grid-primary']});
+                    if(f.length) { lockedId = f[0].id; document.getElementById('lock-indicator').style.display='inline-block'; highlightGrid(lockedId); } 
+                    else { lockedId = null; document.getElementById('lock-indicator').style.display='none'; resetMap(true); }
                 });
-                map.on('mouseleave', 'grid-primary', () => { if(!lockedId) resetMap(); });
+                
+                // We no longer trigger a full reset on mouse leave to prevent flickering. 
+                // Only clear hover geometry when necessary.
+                map.on('mouseleave', 'grid-primary', () => { 
+                    if(!lockedId && hoveredId) {
+                        activeIds.forEach(idx => map.setFeatureState({source:'grid-source', id:idx}, {active:false, focused:false, is_core:false, is_interp:false}));
+                        map.setFeatureState({source:'grid-source', id:hoveredId}, {focused:false});
+                        hoveredId = null;
+                        document.getElementById('passport-header').style.opacity = 0;
+                        document.getElementById('legend-panel').style.opacity = 0;
+                        document.getElementById('analytics-content').style.display = 'none';
+                        document.getElementById('node-text').innerText = "MONITORING ACTIVE";
+                        document.getElementById('location-text').innerText = "West Africa Regional Dashboard";
+                    }
+                });
+                
+                resetMap(); 
             });
         } catch (e) { console.error("Initialization Failed:", e); }
     }
+
+    // PERFECT BORDER HIGHLIGHTING
+    window.zoomToCountry = (country) => {
+        if (!country || !map.getSource('country-polygons')) return;
+        const bounds = countryBounds[country];
+        if (bounds) {
+            map.fitBounds(bounds, { padding: 40 });
+            const iso3 = countryISO3[country];
+
+            // Dim background
+            map.setPaintProperty('country-dimmer-poly', 'fill-opacity', 0.75);
+            map.setFilter('country-dimmer-poly', ['!=', 'ISO_A3', iso3]);
+
+            // Dynamically paint the targeted country line
+            map.setPaintProperty('country-highlight-line', 'line-color', ['case', ['==', ['get', 'ISO_A3'], iso3], '#bf00ff', 'rgba(0,0,0,0)']);
+        }
+    };
+
+    window.resetView = () => {
+        document.getElementById('country-select').value = "";
+        map.flyTo({ center: [-5.5, 7.5], zoom: 5.5 });
+        if (map.getLayer('country-dimmer-poly')) {
+            map.setPaintProperty('country-dimmer-poly', 'fill-opacity', 0);
+            map.setPaintProperty('country-highlight-line', 'line-color', 'rgba(0,0,0,0)'); 
+        }
+    };
 
     window.toggleForest = () => {
         isForestVisible = !isForestVisible;
@@ -351,11 +482,9 @@
 
     window.toggleUnits = () => {
         useMetric = !useMetric;
-        const btn = document.getElementById('btn-unit');
-        btn.innerText = useMetric ? "KM" : "MI";
+        document.getElementById('btn-unit').innerText = useMetric ? "KM" : "MI";
         if ((hoveredId || lockedId) && currentMode) {
-            const targetId = lockedId || hoveredId;
-            highlightGrid(targetId); // Re-run highlight to refresh interpolation & UI with new units
+            highlightGrid(lockedId || hoveredId); 
         }
     };
 
@@ -364,91 +493,96 @@
         pointDataCache[id].fetching = true;
         try {
             const [lng, lat] = pointDataCache[id].centroid;
-            const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?types=region&access_token=${mapboxgl.accessToken}`;
-            const res = await fetch(url);
+            const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?types=region,country&access_token=${mapboxgl.accessToken}`);
             const data = await res.json();
             if (data.features && data.features.length > 0) {
-                pointDataCache[id].adminName = data.features[0].text;
+                const regionF = data.features.find(f => f.place_type.includes('region'));
+                const countryF = data.features.find(f => f.place_type.includes('country'));
+                
+                if (regionF) pointDataCache[id].adminName = regionF.text;
+                if (countryF) pointDataCache[id].COUNTRY = countryF.text;
+
                 if (hoveredId === id || lockedId === id) {
-                    const country = pointDataCache[id].COUNTRY || 'West Africa';
-                    document.getElementById('location-text').innerText = `${pointDataCache[id].adminName}, ${country}`;
+                    let cName = (pointDataCache[id].COUNTRY && pointDataCache[id].COUNTRY !== "null") ? pointDataCache[id].COUNTRY : 'West Africa';
+                    let rName = (pointDataCache[id].adminName && pointDataCache[id].adminName !== "null") ? pointDataCache[id].adminName : null;
+                    document.getElementById('location-text').innerText = rName ? `${rName}, ${cName}` : cName;
                 }
             }
         } catch(e) { console.warn("Geo-lookup failed", e); }
     }
 
-    function resetMap() {
-        hoveredId = null; 
-        if(currentMode) {
-            map.setFilter('grid-primary', ['!=', 'id', 'null']);
-            map.setFilter('grid-reveal', ['in', 'id', '']);
+    // FIX 3: Complete map wipe upon tab deselection
+    function resetMap(keepMode = false) {
+        // Clear all active tracking memory instantly
+        if (map.getSource('grid-source')) {
+            map.removeFeatureState({source: 'grid-source'});
         }
-        activeIds.forEach(id => map.setFeatureState({source:'grid-source', id}, {active:false, focused:false, health:null}));
+        
+        hoveredId = null;
+        lockedId = null; 
         activeIds = [];
-        document.getElementById('location-text').innerText = "West Africa Regional Dashboard";
-        document.getElementById('node-text').innerText = currentMode ? "MONITORING ACTIVE" : "MAP VIEW";
+        document.getElementById('lock-indicator').style.display='none';
         
-        document.getElementById('dynamic-content').style.opacity = currentMode ? 1 : 0;
-        document.getElementById('passport-header').style.opacity = 0; 
-        document.getElementById('legend-panel').style.opacity = 0; 
-        
-        if (!currentMode) {
-            document.getElementById('dynamic-content').style.pointerEvents = 'none';
-        } else {
-            document.getElementById('dynamic-content').style.pointerEvents = 'auto';
-            document.getElementById('intro-text').innerText = "Identifying physical linkages between forest cover and regional rainfall. Hover to initiate modeling.";
+        if(!currentMode && !keepMode) {
+            map.setPaintProperty('grid-context', 'fill-opacity', 0);
+            map.setPaintProperty('grid-primary', 'fill-opacity', 0);
+            
+            document.getElementById('node-text').innerText = "WAITING FOR INPUT";
+            document.getElementById('location-text').innerText = "West Africa Regional Dashboard";
+            document.getElementById('passport-header').style.opacity = 0; 
+            document.getElementById('legend-panel').style.opacity = 0; 
+            document.getElementById('analytics-content').style.display = 'none';
+            document.getElementById('disclaimer-content').style.display = 'block';
+        } else if (currentMode) {
+            document.getElementById('location-text').innerText = "West Africa Regional Dashboard";
+            document.getElementById('node-text').innerText = "MONITORING ACTIVE";
+            document.getElementById('passport-header').style.opacity = 0;
+            document.getElementById('analytics-content').style.display = 'flex';
             document.getElementById('status-container').innerHTML = '';
             document.getElementById('policy-box').innerHTML = '';
-            document.getElementById('target-box').innerText = "Hover over a grid to activate the causal analysis engine.";
+            document.getElementById('intro-text').innerText = "";
+            document.getElementById('target-box').innerText = "Hover over a grid to initiate modeling.";
         }
     }
 
-    // --- MAIN ENGINE: HIGHLIGHT + TRAJECTORY INTERPOLATION ---
+    // BUTTER-SMOOTH HOVER LOGIC
     function highlightGrid(id) {
-        if(hoveredId === id && !useMetric) return; // Optimization, but allow re-run if units changed
+        if(hoveredId === id && !useMetric) return; 
+        
+        // Manual cleanup avoids full Mapbox state wipe flicker
+        activeIds.forEach(idx => map.setFeatureState({source:'grid-source', id:idx}, {active:false, focused:false, is_core:false, is_interp:false}));
+        if (hoveredId) map.setFeatureState({source:'grid-source', id:hoveredId}, {focused:false});
+        
         hoveredId = id;
         
-        // Reset previous states
-        activeIds.forEach(idx => map.setFeatureState({source:'grid-source', id:idx}, {active:false, focused:false, health:null}));
-        
         const stats = pointDataCache[id]; if(!stats) return;
-        
-        // 1. Get Linked IDs
         const rawLinked = currentMode === 'driver' ? stats.connections_down : stats.connections_up;
         let validLinked = [...new Set(rawLinked)].filter(lid => pointDataCache[lid]);
+        const coreSet = new Set(validLinked); coreSet.add(id);
 
-        // 2. Sort by distance to reconstruct "flow"
         validLinked.sort((a,b) => {
             const distA = getDistanceKm(stats.centroid, pointDataCache[a].centroid);
             const distB = getDistanceKm(stats.centroid, pointDataCache[b].centroid);
             return distA - distB;
         });
 
-        // 3. Interpolate Gaps (The "Path-Integrated" Logic)
         const fullPathIds = new Set(validLinked);
-        fullPathIds.add(id); // Include self
+        fullPathIds.add(id); 
 
-        // Construct path: [Source, ...SortedLinks]
         let pathPoints = [id, ...validLinked];
 
         for(let i=0; i<pathPoints.length-1; i++) {
             const p1 = pointDataCache[pathPoints[i]].centroid;
             const p2 = pointDataCache[pathPoints[i+1]].centroid;
-            
-            // Calculate Euclidean distance in Grid Units (Degree Approximation)
             const distDeg = Math.sqrt(Math.pow(p2[0]-p1[0], 2) + Math.pow(p2[1]-p1[1], 2));
             
-            // If gap > 0.3 degrees (adjacent diagonal is ~0.35), interpolate
-            // 0.25 grid size. Adjacent center-to-center is 0.25. Diagonal is 0.35.
             if(distDeg > 0.35) {
-                // Number of steps to fill. 
                 const steps = Math.floor(distDeg / 0.25);
                 for(let s=1; s<=steps; s++) {
                     const t = s / (steps+1);
                     const interpLng = p1[0] + (p2[0]-p1[0])*t;
                     const interpLat = p1[1] + (p2[1]-p1[1])*t;
                     
-                    // Lookup ID for interpolated coordinate
                     const key = getSpatialKey(interpLng, interpLat);
                     if(coordToId[key]) {
                         fullPathIds.add(coordToId[key]);
@@ -458,46 +592,53 @@
         }
 
         const finalIds = Array.from(fullPathIds);
-        activeIds = finalIds; // Update global tracking for reset
+        activeIds = finalIds; 
 
-        // 4. Update Map State
-        map.setFeatureState({source:'grid-source', id}, {focused:true});
+        // Apply new rendering states instantly
+        map.setFeatureState({source:'grid-source', id}, {focused:true, is_core:true});
 
         finalIds.forEach(lid => {
             const l = pointDataCache[lid];
             if(l) {
                 const isBad = currentMode === 'driver' ? (l.precip_change_pct < 0) : (l.forest_loss_pct > 10);
-                map.setFeatureState({source:'grid-source', id:lid}, {active:true, health: isBad ? 'bad' : 'good'});
+                const isCore = coreSet.has(lid);
+                map.setFeatureState({source:'grid-source', id:lid}, {
+                    active:true, 
+                    health: isBad ? 'bad' : 'good',
+                    is_core: isCore,
+                    is_interp: !isCore
+                });
             }
         });
 
-        map.setFilter('grid-primary', ['in', 'id', '']); 
-        map.setFilter('grid-reveal', ['in', ['get', 'id'], ['literal', activeIds]]);
+        // Filter calculation has been permanently eliminated from here for max performance
         
         updateUI(id, stats, finalIds);
         if (!stats.adminName) fetchAdminName(id);
     }
 
     function updateUI(id, stats, uniqueLinked) {
-        const locName = stats.adminName ? `${stats.adminName}, ${stats.COUNTRY}` : `${stats.COUNTRY || 'West Africa'}`;
+        let cName = (stats.COUNTRY && stats.COUNTRY !== "null") ? stats.COUNTRY : null;
+        if (!cName && stats.country && stats.country !== "null") cName = stats.country;
+        if (!cName) cName = 'West Africa';
+
+        const rName = (stats.adminName && stats.adminName !== "null") ? stats.adminName : null;
+        const locName = rName ? `${rName}, ${cName}` : cName;
+
         document.getElementById('location-text').innerText = locName;
-        document.getElementById('node-text').innerText = `DATA NODE: ${id}`;
+        document.getElementById('node-text').innerHTML = `DATA NODE: ${id}`;
         
-        // Show Headers
+        document.getElementById('analytics-content').style.display = 'flex';
         document.getElementById('passport-header').style.opacity = 1;
         document.getElementById('legend-panel').style.opacity = 1;
 
-        let bad = 0;
-        let maxDist = 0;
-        let totalArea = 0;
-        let badArea = 0;
+        let bad = 0; let maxDist = 0; let totalArea = 0; let badArea = 0;
 
         uniqueLinked.forEach(lid => {
             const s = pointDataCache[lid];
             if(s) { 
                 const isBad = (currentMode === 'driver' ? s.precip_change_pct < 0 : s.forest_loss_pct > 10);
                 if(isBad) { bad++; badArea += s.areaKm; }
-                
                 const dist = getDistanceKm(stats.centroid, s.centroid);
                 if (dist > maxDist) maxDist = dist;
                 totalArea += s.areaKm;
@@ -505,23 +646,22 @@
         });
 
         const goodArea = totalArea - badArea;
-
-        // UNIT CONVERSION
-        const uDist = useMetric ? 'km' : 'mi';
-        const uArea = useMetric ? 'sq km' : 'sq mi';
+        const uDist = useMetric ? 'km' : 'mi'; const uArea = useMetric ? 'sq km' : 'sq mi';
         const valDist = useMetric ? Math.round(maxDist) : Math.round(maxDist * 0.621371);
         const valTotalArea = useMetric ? Math.round(totalArea) : Math.round(totalArea * 0.386102);
         
         document.getElementById('val-surface').innerText = `${valTotalArea.toLocaleString()} ${uArea}`;
         document.getElementById('val-distance').innerText = `${valDist.toLocaleString()} ${uDist}`;
 
-        const badColor = currentMode === 'driver' ? '#ffbcaf' : '#ff4d4d';
-        const goodColor = currentMode === 'driver' ? '#73a2c6' : '#00e676';
+        const badColor = currentMode === 'driver' ? '#933b41' : '#ff4d4d';
+        const goodColor = currentMode === 'driver' ? '#ffffff' : '#00e676';
+        
         const badLabel = currentMode === 'driver' ? 'Rainfall Deficit' : 'Degraded Sources';
-        const goodLabel = currentMode === 'driver' ? 'Stable/Wetting' : 'Intact Sources';
+        const goodLabel = currentMode === 'driver' ? 'Stable Rainfall' : 'Intact Sources';
 
         const badPct = totalArea > 0 ? Math.round((badArea / totalArea) * 100) : 0;
         const goodPct = 100 - badPct;
+        
         document.getElementById('label-bad').innerText = badLabel;
         document.getElementById('label-good').innerText = goodLabel;
         document.getElementById('pct-bad').innerText = `${badPct}%`;
@@ -529,8 +669,7 @@
         document.getElementById('dot-bad').style.background = badColor;
         document.getElementById('dot-good').style.background = goodColor;
 
-        let statusClass = '', statusTitle = '', bannerSub = '';
-        let introText = '', diagnosticText = '', targetQuestion = '';
+        let statusClass = '', statusTitle = '', bannerSub = '', introText = '', diagnosticText = '', targetQuestion = '';
 
         if (currentMode === 'driver') {
             targetQuestion = "Active Consequences: If forest loss occurs here, where is rainfall stability threatened?";
@@ -596,7 +735,10 @@
                     legend: { display: false }, 
                     tooltip: { enabled: false }, 
                     datalabels: { 
-                        color: '#fff', 
+                        color: (context) => {
+                            if (currentMode === 'driver' && context.datasetIndex === 1) return '#000000'; 
+                            return '#ffffff';
+                        },
                         font: { weight: 'bold', size: 11 }, 
                         formatter: (v) => (displayTotal > 0 && (v/displayTotal) > 0.15) ? Math.round(v).toLocaleString() + ' ' + unitLabel : '' 
                     } 
@@ -610,15 +752,18 @@
         if (currentMode === mode) {
             currentMode = null; 
             document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-            map.setPaintProperty('grid-context', 'fill-opacity', 0);
-            map.setPaintProperty('grid-primary', 'fill-opacity', 0);
-            map.setPaintProperty('grid-reveal', 'fill-opacity', 0);
             resetMap();
         } else {
             currentMode = mode; 
             document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(`btn-mode-${mode}`).classList.add('active');
             
+            document.getElementById('disclaimer-content').style.display = 'none';
+            document.getElementById('analytics-content').style.display = 'flex';
+            document.getElementById('passport-header').style.opacity = 1;
+            document.getElementById('legend-panel').style.opacity = 1;
+            document.getElementById('node-text').innerHTML = `MONITORING ACTIVE`;
+
             const primaryPalette = mode === 'driver' ? PALETTE_FOREST : PALETTE_PRECIP;
             const revealPalette = mode === 'driver' ? PALETTE_PRECIP : PALETTE_FOREST;
             
@@ -629,23 +774,18 @@
             map.setPaintProperty('grid-context', 'fill-opacity', 0.1);
             map.setPaintProperty('grid-primary', 'fill-opacity', 0.7);
             
-            const title = document.getElementById('legend-title');
-            const metrics = document.getElementById('legend-metrics');
-            const bar = document.getElementById('legend-bar');
-            const tooltip = document.getElementById('legend-tooltip');
-
             if(mode === 'driver') {
-                title.innerText = 'Vegetation Integrity Index';
-                bar.style.background = 'linear-gradient(to right, #0a4d1c, #bd2c00)';
-                metrics.innerHTML = '<span>0% (Intact)</span><span>20%+ (Loss)</span>';
-                tooltip.innerText = "Forest cover loss percentage relative to 2000 baseline. >20% indicates severe degradation.";
+                document.getElementById('legend-title').innerText = 'Vegetation Integrity Index';
+                document.getElementById('legend-bar').style.background = 'linear-gradient(to right, #0a4d1c, #bd2c00)';
+                document.getElementById('legend-metrics').innerHTML = '<span>0% (Intact)</span><span>20%+ (Loss)</span>';
+                document.getElementById('legend-tooltip').innerText = "Forest cover loss percentage relative to 2000 baseline.";
             } else {
-                title.innerText = 'Precipitation Delta';
-                bar.style.background = 'linear-gradient(to right, #550b1d, #ffbcaf, #ffffff)';
-                metrics.innerHTML = '<span>-15% (Drying)</span><span>0% (Neutral)</span>';
-                tooltip.innerText = "Percentage deviation in rainfall attributed to upwind land-use modifications.";
+                document.getElementById('legend-title').innerText = 'Precipitation Delta';
+                document.getElementById('legend-bar').style.background = 'linear-gradient(to right, #550b1d, #ffbcaf, #ffffff)';
+                document.getElementById('legend-metrics').innerHTML = '<span>-15% (Drying)</span><span>0% (Neutral)</span>';
+                document.getElementById('legend-tooltip').innerText = "Percentage deviation in rainfall attributed to upwind land-use modifications.";
             }
-            if(hoveredId) { let old = hoveredId; hoveredId = null; highlightGrid(old); }
+            if(hoveredId) { let old = hoveredId; hoveredId = null; highlightGrid(old); } else { resetMap(true); }
         }
     };
     initApp();
