@@ -24,21 +24,20 @@
         .console { 
             position: absolute; top: 15px; left: 15px; width: 460px; max-height: 95vh;
             background: var(--glass); padding: 24px; border-radius: 12px; 
-            border: 1px solid rgba(255,255,255,0.1); z-index: 100;
+            border: 1px solid rgba(255,255,255,0.1); z-index: 100; box-sizing: border-box;
             box-shadow: 0 20px 60px rgba(0,0,0,0.6); backdrop-filter: blur(10px);
             display: flex; flex-direction: column; gap: 14px; overflow-y: auto;
         }
 
-        h1 { font-size: 10px; color: var(--accent); margin: 0; letter-spacing: 2.5px; font-weight: 800; text-transform: uppercase; opacity: 0.8; white-space: nowrap; }
+        h1 { font-size: 10px; color: var(--accent); margin: 0; letter-spacing: 2.5px; font-weight: 800; text-transform: uppercase; opacity: 0.8; white-space: nowrap; width: 100%; }
         .location-header { font-size: 22px; font-weight: 700; color: #fff; margin-top: 2px; letter-spacing: -0.5px; line-height: 1.1; word-wrap: break-word; }
         
-        .node-ref { font-size: 10px; color: #8b949e; font-family: monospace; text-transform: uppercase; margin-bottom: 2px; display: flex; align-items: center; }
-        .lock-badge { display: none; background: var(--accent); color: #000; font-weight: 800; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-size: 9px; letter-spacing: 0.5px; }
+        .node-ref { font-size: 10px; color: #8b949e; font-family: monospace; text-transform: uppercase; margin-bottom: 2px; display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+        .lock-badge { display: none; background: var(--accent); color: #000; font-weight: 800; padding: 2px 6px; border-radius: 4px; font-size: 9px; letter-spacing: 0.5px; }
 
-        /* HEADER CONTROLS */
         .control-bar {
             display: flex; align-items: center; background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 4px; gap: 4px; flex-shrink: 0;
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 4px; gap: 4px; flex-shrink: 0; flex-wrap: wrap;
         }
         .cb-btn {
             cursor: pointer; padding: 6px 8px; border-radius: 6px; display: flex; align-items: center; justify-content: center;
@@ -62,7 +61,6 @@
         .legend-metric-row { display: flex; justify-content: space-between; font-size: 10px; font-weight: 600; color: #8b949e; margin-top: 4px; }
         .legend-bar { height: 6px; width: 100%; border-radius: 3px; }
 
-        /* TAB STYLES WITH ICONS */
         .view-toggles { display: flex; gap: 8px; background: rgba(255,255,255,0.02); padding: 4px; border-radius: 8px; }
         .toggle-btn { 
             flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
@@ -94,7 +92,6 @@
         .standard-text { font-size: 13px; line-height: 1.6; color: #acb1b9; }
         .standard-text strong { color: #fff; font-weight: 600; }
 
-        /* TOOLTIPS */
         .info-wrapper { position: relative; display: inline-flex; align-items: center; justify-content: center; }
         .info-trigger { cursor: help; opacity: 0.5; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; width: 14px; height: 14px; }
         .info-trigger:hover { opacity: 1; }
@@ -104,9 +101,8 @@
         .tooltip-content.right-align { right: -10px; left: auto; transform: none; }
         .tooltip-content.right-align::after { right: 14px; left: auto; margin-left: 0; }
 
-        /* MODAL OVERLAY STYLES */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(1, 4, 9, 0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1000; transition: opacity 0.4s ease; }
-        .modal-content { background: var(--glass); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 32px; width: 600px; max-width: 90%; box-shadow: 0 24px 80px rgba(0,0,0,0.8); display: flex; flex-direction: column; gap: 16px; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(1, 4, 9, 0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1000; transition: opacity 0.4s ease; padding: 15px; box-sizing: border-box;}
+        .modal-content { background: var(--glass); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 32px; width: 600px; max-width: 100%; box-shadow: 0 24px 80px rgba(0,0,0,0.8); display: flex; flex-direction: column; gap: 16px; box-sizing: border-box; }
         .modal-tag { font-size: 10px; font-weight: 800; color: var(--wb-blue); background: var(--accent); padding: 4px 8px; border-radius: 4px; align-self: flex-start; text-transform: uppercase; letter-spacing: 1px; }
         .modal-title { font-size: 24px; font-weight: 700; color: #fff; margin: 0; letter-spacing: -0.5px; }
         .modal-text { font-size: 13px; line-height: 1.6; color: #acb1b9; margin: 0; }
@@ -125,13 +121,42 @@
         .country-select { flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 8px; border-radius: 6px; font-family: 'Inter', sans-serif; font-size: 12px; outline: none; cursor: pointer; }
         .reset-btn { padding: 8px 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; cursor: pointer; color: #ccc; font-size: 11px; font-weight: 600; transition: all 0.2s; }
         .reset-btn:hover { background: rgba(255,255,255,0.2); color: #fff; }
+
+        /* ========================================= */
+        /* RESPONSIVE MOBILE CSS (IPHONE 12 TARGET)  */
+        /* ========================================= */
+        @media (max-width: 768px) {
+            .console {
+                top: auto; bottom: 0; left: 0; width: 100%;
+                max-height: 55vh; border-radius: 20px 20px 0 0;
+                padding: 20px; border: none; border-top: 1px solid rgba(255,255,255,0.15);
+                box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
+            }
+            /* Drag Pill Indicator */
+            .console::before {
+                content: ''; display: block; width: 36px; height: 4px;
+                background: rgba(255,255,255,0.25); border-radius: 2px; margin: -8px auto 16px auto;
+            }
+            .location-header { font-size: 18px; }
+            .cb-btn { padding: 8px 10px; } /* Larger touch targets */
+            
+            /* Disable tooltips entirely on touch to prevent phantom layout breaks */
+            .tooltip-content { display: none !important; }
+            
+            .modal-content { padding: 24px; max-height: 90vh; overflow-y: auto; }
+            .modal-title { font-size: 20px; }
+            .tutorial-list { padding-left: 16px; font-size: 12px; }
+            
+            /* Ensure the control bar flex safely wraps on small screens */
+            .control-bar { flex-wrap: wrap; justify-content: flex-start; }
+        }
     </style>
 </head>
 <body>
 
 <div id="welcome-modal" class="modal-overlay">
     <div class="modal-content">
-        <span class="modal-tag">Pilot Dashboard v1.74</span>
+        <span class="modal-tag">Pilot Dashboard v1.75</span>
         <h2 class="modal-title">Atmospheric Causality & Invisible Water</h2>
         
         <p class="modal-text">Welcome. This interactive platform visualizes the physical causality between forest ecosystems and downwind rainfall stability. By quantifying these invisible climate teleconnections, the tool supports evidence-based planning across critical sectors—including <strong>water resource management, energy infrastructure, urban development, and disaster risk mitigation</strong>—throughout West Africa.</p>
@@ -139,8 +164,8 @@
         <div class="tutorial-box">
             <div class="tutorial-title">How to use this tool:</div>
             <ol class="tutorial-list">
-                <li><strong>Select a Mode:</strong> Use the left panel to toggle between <em>Sink Analysis</em> (identifying rainfall vulnerability) and <em>Source Analysis</em> (identifying critical forest nodes).</li>
-                <li><strong>Hover to Model:</strong> Move your cursor over any active map grid to instantly compute and visualize its atmospheric moisture pathways.</li>
+                <li><strong>Select a Mode:</strong> Use the panel to toggle between <em>Sink Analysis</em> (identifying rainfall vulnerability) and <em>Source Analysis</em> (identifying critical forest nodes).</li>
+                <li><strong>Tap/Hover to Model:</strong> Select any active map grid to instantly compute and visualize its atmospheric moisture pathways.</li>
                 <li><strong>Analyze Flows:</strong> Observe the animated moisture particles. In Sink Analysis, particles flow <em>inward</em> (acting as a moisture vacuum). In Source Analysis, particles flow <em>outward</em> (acting as a moisture generator).</li>
                 <li><strong>Click to Lock/Unlock:</strong> Click on a grid to lock the view and auto-frame its ecosystem footprint. Click the exact same grid again to easily unlock.</li>
             </ol>
@@ -159,46 +184,48 @@
 
 <div class="console" id="main-panel">
     
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+    <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;">
         <h1>Atmospheric Teleconnections</h1>
         
-        <div class="control-bar">
-            <div id="btn-unit" class="cb-btn" onclick="toggleUnits()" title="Switch Units (Metric/Imperial)">KM</div>
-            <div class="cb-divider"></div>
-            <div class="cb-group">
-                <div id="btn-satellite" class="cb-btn globe-btn" onclick="toggleSatellite()">
-                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 0;">
+                <div class="location-header" id="location-text">West Africa Eco-Climatic Dashboard</div>
+                <div class="node-ref" style="margin-top: 6px;">
+                    <span id="node-text">WAITING FOR INPUT</span>
+                    <span id="lock-indicator" class="lock-badge">LOCKED</span>
                 </div>
-                <div class="info-wrapper">
-                    <div class="info-trigger"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#8b949e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div>
-                    <div class="tooltip-content right-align">
-                        <strong>Satellite Imagery:</strong><br>Switch to Mapbox high-resolution satellite raster basemap to ground-truth specific grid locations.
+            </div>
+            
+            <div class="control-bar">
+                <div id="btn-unit" class="cb-btn" onclick="toggleUnits()" title="Switch Units (Metric/Imperial)">KM</div>
+                <div class="cb-divider"></div>
+                <div class="cb-group">
+                    <div id="btn-satellite" class="cb-btn globe-btn" onclick="toggleSatellite()">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                    </div>
+                    <div class="info-wrapper">
+                        <div class="info-trigger"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#8b949e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div>
+                        <div class="tooltip-content right-align">
+                            <strong>Satellite Imagery:</strong><br>Switch to Mapbox high-resolution satellite raster basemap to ground-truth specific grid locations.
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="cb-group">
-                <div id="btn-forest" class="cb-btn" onclick="toggleForest()">
-                    <svg viewBox="0 0 24 24"><path d="M14,6l-3.2,5H13v2h-3v8h-2v-8H5v-2h2.2l-3.2-5H6l3-5l3,5H14z M17,11l-1.6,2.5H16v1h-1v6h-1v-6h-0.6L12,12h1.6L15,9.5L17,11z"/></svg>
-                </div>
-                <div class="info-wrapper">
-                    <div class="info-trigger"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#8b949e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div>
-                    <div class="tooltip-content right-align">
-                        <strong>Data Source:</strong><br>High-resolution global forest cover (Class: Wood/Forest) derived from OpenStreetMap & Natural Earth via Mapbox Vector Tiles.
+                <div class="cb-group">
+                    <div id="btn-forest" class="cb-btn" onclick="toggleForest()">
+                        <svg viewBox="0 0 24 24"><path d="M14,6l-3.2,5H13v2h-3v8h-2v-8H5v-2h2.2l-3.2-5H6l3-5l3,5H14z M17,11l-1.6,2.5H16v1h-1v6h-1v-6h-0.6L12,12h1.6L15,9.5L17,11z"/></svg>
+                    </div>
+                    <div class="info-wrapper">
+                        <div class="info-trigger"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#8b949e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div>
+                        <div class="tooltip-content right-align">
+                            <strong>Data Source:</strong><br>High-resolution global forest cover (Class: Wood/Forest) derived from OpenStreetMap & Natural Earth via Mapbox Vector Tiles.
+                        </div>
                     </div>
                 </div>
+                <div class="cb-divider"></div>
+                <div class="cb-btn" onclick="generateReport()" title="Print View">
+                    <svg viewBox="0 0 24 24"><path d="M19 8h-1V3H6v5H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zM8 5h8v3H8V5zm8 12v2H8v-4h8v2zm2-2v-2H6v2H4v-4c0-.55.45-1 1-1h14c.55 0 1 .45 1 1v4h-2z"/></svg>
+                </div>
             </div>
-            <div class="cb-divider"></div>
-            <div class="cb-btn" onclick="generateReport()" title="Print View">
-                <svg viewBox="0 0 24 24"><path d="M19 8h-1V3H6v5H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zM8 5h8v3H8V5zm8 12v2H8v-4h8v2zm2-2v-2H6v2H4v-4c0-.55.45-1 1-1h14c.55 0 1 .45 1 1v4h-2z"/></svg>
-            </div>
-        </div>
-    </div>
-
-    <div style="margin-bottom: 12px;">
-        <div class="location-header" id="location-text">West Africa Eco-Climatic Dashboard</div>
-        <div class="node-ref" style="margin-top: 6px;">
-            <span id="node-text">WAITING FOR INPUT</span>
-            <span id="lock-indicator" class="lock-badge">LOCKED</span>
         </div>
     </div>
 
@@ -445,7 +472,6 @@
 
                 map.addSource('grid-source', { type: 'geojson', data: geojson, promoteId: 'id' });
                 
-                // DATA MESH FIX: Baseline grids raised to 0.12 opacity to show "universe of possibilities"
                 map.addLayer({ 'id': 'grid-context', 'type': 'fill', 'source': 'grid-source', 'paint': { 'fill-color': '#ffffff', 'fill-opacity': 0.12 } });
                 map.addLayer({ 'id': 'grid-primary', 'type': 'fill', 'source': 'grid-source', 'paint': { 'fill-color': PALETTE_FOREST, 'fill-opacity': 0 } });
                 
@@ -508,36 +534,33 @@
 
                 map.on('mousemove', 'grid-primary', e => { if(currentMode && !lockedId && e.features.length) highlightGrid(e.features[0].id); });
                 
-                // CLICK TO UNLOCK FIX
+                // CLICK TO UNLOCK & MOBILE RESPONSIVE PADDING
                 map.on('click', e => { 
                     if (!currentMode) return;
                     const f = map.queryRenderedFeatures(e.point, {layers:['grid-primary', 'grid-reveal']});
                     if(f.length) { 
                         const clickedId = f[0].id;
                         if (lockedId === clickedId) {
-                            // Clicked same grid: instantly unlock, reset UI badge, force re-hover
                             lockedId = null; 
                             document.getElementById('lock-indicator').style.display = 'none';
                             highlightGrid(clickedId, true);
                         } else {
-                            // Lock new grid
                             lockedId = clickedId; 
-                            document.getElementById('lock-indicator').style.display = 'inline-block'; 
                             highlightGrid(lockedId, true);
                             
-                            // Auto-framing Camera
                             if (activeIds && activeIds.length > 0) {
                                 const bounds = new mapboxgl.LngLatBounds();
                                 activeIds.forEach(idx => {
                                     if(pointDataCache[idx]) bounds.extend(pointDataCache[idx].centroid);
                                 });
                                 if (!bounds.isEmpty()) {
-                                    map.fitBounds(bounds, {
-                                        padding: { top: 60, bottom: 60, left: 490, right: 60 },
-                                        duration: 1500,
-                                        maxZoom: 7.5,
-                                        essential: true
-                                    });
+                                    // MOBILE AWARE PADDING: Pushes camera UP if on mobile, RIGHT if on desktop
+                                    const isMobile = window.innerWidth <= 768;
+                                    const padOpts = isMobile 
+                                        ? { top: 40, bottom: window.innerHeight * 0.55 + 20, left: 20, right: 20 }
+                                        : { top: 60, bottom: 60, left: 490, right: 60 };
+
+                                    map.fitBounds(bounds, { padding: padOpts, duration: 1500, maxZoom: 7.5, essential: true });
                                 }
                             }
                         }
@@ -570,11 +593,17 @@
         } catch (e) { console.error("Initialization Failed:", e); }
     }
 
+    // MOBILE AWARE ZOOM TO COUNTRY
     window.zoomToCountry = (country) => {
         if (!country || !map.getSource('country-polygons')) return;
         const bounds = countryBounds[country];
         if (bounds) {
-            map.fitBounds(bounds, { padding: { top: 40, bottom: 40, left: 490, right: 40 } });
+            const isMobile = window.innerWidth <= 768;
+            const padOpts = isMobile 
+                ? { top: 40, bottom: window.innerHeight * 0.55 + 20, left: 20, right: 20 }
+                : { top: 40, bottom: 40, left: 490, right: 40 };
+
+            map.fitBounds(bounds, { padding: padOpts });
             
             const iso2 = countryISO2[country];
             const iso3 = countryISO3[country];
@@ -709,7 +738,6 @@
     function highlightGrid(id, force = false) {
         if(hoveredId === id && !force) return; 
         
-        // PHANTOM PARTICLES FIX: Forcibly wipe GPU arrays upon hovering onto a new grid
         if (animationReqId) {
             cancelAnimationFrame(animationReqId);
             animationReqId = null;
@@ -802,17 +830,17 @@
             }
         });
 
-        // Trigger animation if connections exist
-        if (map.getSource('flow-lines') && activePaths.length > 0) {
+        if (map.getSource('flow-lines')) {
             map.getSource('flow-lines').setData({ type: 'FeatureCollection', features: lineFeatures });
-            animationReqId = requestAnimationFrame(animateParticles);
+            if (activePaths.length > 0) {
+                animationReqId = requestAnimationFrame(animateParticles);
+            }
         }
         
         updateUI(id, stats, finalIds);
         if (!stats.adminName) fetchAdminName(id);
     }
 
-    // CLIMATE PASSPORT RELIABILITY FIX: opacity/display triggered explicitly every time
     function updateUI(id, stats, uniqueLinked) {
         let cName = (stats.COUNTRY && stats.COUNTRY !== "null") ? stats.COUNTRY : null;
         if (!cName && stats.country && stats.country !== "null") cName = stats.country;
@@ -826,7 +854,6 @@
         document.getElementById('node-text').innerText = `DATA NODE: ${id}`;
         document.getElementById('lock-indicator').style.display = lockedId ? 'inline-block' : 'none';
         
-        // Force Panel Visibility
         document.getElementById('analytics-content').style.display = 'flex';
         document.getElementById('passport-header').style.opacity = 1;
         document.getElementById('legend-panel').style.opacity = 1;
@@ -961,6 +988,8 @@
             document.getElementById('analytics-content').style.display = 'flex';
             document.getElementById('passport-header').style.opacity = 1;
             document.getElementById('legend-panel').style.opacity = 1;
+            
+            document.getElementById('node-text').innerHTML = `MONITORING ACTIVE`;
 
             const primaryPalette = mode === 'driver' ? PALETTE_FOREST : PALETTE_PRECIP;
             const revealPalette = mode === 'driver' ? PALETTE_PRECIP : PALETTE_FOREST;
@@ -969,7 +998,6 @@
             map.setPaintProperty('grid-primary', 'fill-color', primaryPalette); 
             map.setPaintProperty('grid-reveal', 'fill-color', revealPalette);
             
-            // UNIVERSE OF POSSIBILITIES FIX: Baseline opacity bumped to 0.12 so analysts can see the full map coverage
             if(mode === 'driver') {
                 map.setPaintProperty('grid-primary', 'fill-opacity', [
                     'interpolate', ['linear'], ['coalesce', ['get', 'forest_loss_pct'], 0],
