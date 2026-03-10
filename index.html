@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Atmospheric Causality - Pilot Dashboard</title>
+    <title>Terrestrial Moisture Recycling - Pilot Dashboard</title>
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
     <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
@@ -31,7 +31,6 @@
             display: flex; flex-direction: column; gap: 14px; overflow-y: auto;
         }
 
-        /* HEADER OVERFLOW FIX: Pure Flexbox with wrap to guarantee no overlaps */
         .header-container {
             display: flex;
             flex-wrap: wrap;
@@ -171,14 +170,25 @@
 
         @media (max-width: 768px) {
             .console {
-                top: auto; bottom: 0; left: 0; width: 100%;
-                max-height: 55vh; border-radius: 20px 20px 0 0;
-                padding: 20px; border: none; border-top: 1px solid rgba(255,255,255,0.15);
+                top: auto; 
+                bottom: 0; 
+                left: 0; 
+                width: 100%;
+                max-height: 55vh; 
+                border-radius: 20px 20px 0 0;
+                padding: 20px; 
+                border: none; 
+                border-top: 1px solid rgba(255,255,255,0.15);
                 box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
             }
             .console::before {
-                content: ''; display: block; width: 36px; height: 4px;
-                background: rgba(255,255,255,0.25); border-radius: 2px; margin: -8px auto 16px auto;
+                content: ''; 
+                display: block; 
+                width: 36px; 
+                height: 4px;
+                background: rgba(255,255,255,0.25); 
+                border-radius: 2px; 
+                margin: -8px auto 16px auto;
             }
             .location-header { font-size: 18px; }
             .cb-btn { padding: 8px 10px; }
@@ -193,17 +203,17 @@
 
 <div id="welcome-modal" class="modal-overlay">
     <div class="modal-content">
-        <span class="modal-tag">Pilot Dashboard v1.84</span>
-        <h2 class="modal-title">Atmospheric Causality & Invisible Water</h2>
+        <span class="modal-tag">Pilot Dashboard v1.87</span>
+        <h2 class="modal-title">Terrestrial Moisture Recycling</h2>
         
-        <p class="modal-text">Welcome. This interactive platform visualizes the physical causality between forest ecosystems and downwind rainfall stability. By quantifying these invisible climate teleconnections, the tool supports evidence-based planning across critical sectors—including <strong>water resource management, energy infrastructure, urban development, and disaster risk mitigation</strong>—throughout West Africa.</p>
+        <p class="modal-text">Welcome. This interactive platform visualizes the physical causality between forest ecosystems and downwind rainfall stability. By quantifying these invisible connections, the tool supports evidence-based planning across critical sectors—including <strong>water resource management, energy infrastructure, urban development, and disaster risk mitigation</strong>—throughout West Africa.</p>
         
         <div class="tutorial-box">
             <div class="tutorial-title">How to use this tool:</div>
             <ol class="tutorial-list">
                 <li><strong>Select a Mode:</strong> Use the panel to toggle between <em>Sink Analysis</em> (identifying rainfall vulnerability) and <em>Source Analysis</em> (identifying critical forest nodes).</li>
                 <li><strong>Tap/Hover to Model:</strong> Select any active map grid to instantly compute and visualize its atmospheric moisture pathways.</li>
-                <li><strong>Analyze Flows:</strong> Observe the moisture pathways. In Sink Analysis, particles flow <em>inward</em>. In Source Analysis, particles flow <em>outward</em>. <br><em style="color:#a5d5d8;">Note: Animated particles are a computer-generated visual aid showing wind direction, not raw scientific data.</em></li>
+                <li><strong>Analyze Flows:</strong> Observe the moisture pathways. In Sink Analysis, particles flow <em>inward</em>. In Source Analysis, particles flow <em>outward</em>. <br><em style="color:#a5d5d8;">Note: Animated particles are a computer-generated visual aid to illustrate atmospheric connections and do not represent measured wind trajectories.</em></li>
                 <li><strong>Click to Lock/Unlock:</strong> Click on a grid to lock the view and auto-frame its ecosystem footprint. Click the exact same grid or anywhere else on the map to unlock.</li>
             </ol>
         </div>
@@ -222,7 +232,7 @@
 <div class="console" id="main-panel">
     
     <div class="header-container">
-        <h1>Atmospheric Teleconnections</h1>
+        <h1>Terrestrial Moisture Recycling</h1>
         
         <div class="control-bar">
             <div id="btn-unit" class="cb-btn" onclick="toggleUnits()" title="Switch Units">KM</div>
@@ -277,7 +287,7 @@
     </div>
 
     <div style="margin-bottom: 12px;">
-        <div class="location-header" id="location-text">West Africa Eco-Climatic Dashboard</div>
+        <div class="location-header" id="location-text">West Africa Dashboard</div>
         <div class="node-ref" style="margin-top: 6px;">
             <span id="node-text">WAITING FOR INPUT</span>
             <span id="lock-indicator" class="lock-badge">LOCKED</span>
@@ -382,13 +392,11 @@
 
     const PALETTE_FOREST = ['step', ['get', 'forest_loss_pct'], '#0a4d1c', 0.1, '#238636', 2, '#7ee787', 5, '#ffd33d', 10, '#f66a0a', 20, '#bd2c00'];
     const PALETTE_PRECIP = ['step', ['get', 'precip_change_pct'], '#550b1d', -15, '#933b41', -10, '#cf7c79', -5, '#ffbcaf', -2, '#ffffff', 2, '#a5d5d8', 5, '#73a2c6'];
-    
-    // NEUTRAL SINK PALETTE FIX: Replacing green with neutral greys/whites for intact, popping reds for degraded.
     const PALETTE_SINK_REVEAL = ['step', ['get', 'forest_loss_pct'], '#ffffff', 5, '#e2e8f0', 10, '#ff6b6b', 20, '#ff0000'];
     
     const SOURCE_UNIFORM_COLOR = '#00f2ff'; 
-    const BAD_COLOR = '#ff0000'; // Popping Red
-    const GOOD_COLOR = '#ffffff'; // Neutral White
+    const BAD_COLOR = '#ff0000'; 
+    const GOOD_COLOR = '#ffffff'; 
 
     let currentMode = null; 
     let upwindLookup, downwindLookup = {};
@@ -476,6 +484,39 @@
         animationReqId = requestAnimationFrame(animateParticles);
     }
 
+    // MAPBOX GEOCODING FIX: Dynamically retrieves accurate region and country if missing
+    async function fetchAdminName(id) {
+        if (!pointDataCache[id] || pointDataCache[id].fetching) return;
+
+        if (pointDataCache[id].COUNTRY && pointDataCache[id].adminName && pointDataCache[id].COUNTRY !== "null" && pointDataCache[id].adminName !== "null") {
+            updateLocationText(id);
+            return;
+        }
+
+        pointDataCache[id].fetching = true;
+        try {
+            const [lng, lat] = pointDataCache[id].centroid;
+            const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?types=region,country&access_token=${mapboxgl.accessToken}`);
+            const data = await res.json();
+            if (data.features && data.features.length > 0) {
+                const regionF = data.features.find(f => f.place_type.includes('region'));
+                const countryF = data.features.find(f => f.place_type.includes('country'));
+
+                if (regionF) pointDataCache[id].adminName = regionF.text;
+                if (countryF) pointDataCache[id].COUNTRY = countryF.text;
+                updateLocationText(id);
+            }
+        } catch(e) { console.warn("Geo-lookup failed", e); }
+    }
+
+    function updateLocationText(id) {
+        if (hoveredId === id || lockedId === id) {
+            let cName = pointDataCache[id].COUNTRY || 'West Africa';
+            let rName = pointDataCache[id].adminName || null;
+            document.getElementById('location-text').innerText = (rName && rName !== "null" && rName !== cName) ? `${rName}, ${cName}` : cName;
+        }
+    }
+
     async function initApp() {
         try {
             const [geoRes, lookupRes] = await Promise.all([
@@ -543,7 +584,6 @@
                     promoteId: 'id' 
                 });
                 
-                // VISIBILITY OPACITY FIX: Raised to 0.20 to guarantee visibility of "universe of possibilities"
                 map.addLayer({ 
                     'id': 'grid-context', 
                     'type': 'fill', 
@@ -577,8 +617,7 @@
                         'fill-opacity': [
                             'case', 
                             ['boolean', ['feature-state', 'focused'], false], 0, 
-                            ['boolean', ['feature-state', 'is_core'], false], 0.85, 
-                            ['boolean', ['feature-state', 'is_interp'], false], 0.35, 
+                            ['boolean', ['feature-state', 'active'], false], 0.85, 
                             0
                         ] 
                     } 
@@ -688,9 +727,7 @@
                     } 
                 });
 
-                // CLICK TO UNLOCK & DUAL SELECTION FIX
                 map.on('mousemove', 'grid-primary', e => { 
-                    // Prevent ANY hover actions if a grid is actively locked.
                     if(currentMode && !lockedId && e.features.length) {
                         highlightGrid(e.features[0].id); 
                     }
@@ -703,12 +740,10 @@
                     if(f.length) { 
                         const clickedId = f[0].id; 
                         if(lockedId === clickedId) { 
-                            // Unlocking the currently locked grid
                             lockedId = null; 
                             document.getElementById('lock-indicator').style.display = 'none';
                             highlightGrid(clickedId, true); 
                         } else { 
-                            // Locking a new grid (auto-overrides any previous lock)
                             lockedId = clickedId; 
                             highlightGrid(clickedId, true); 
                             
@@ -724,7 +759,6 @@
                             } 
                         } 
                     } else { 
-                        // Clicked the background map: Unlock everything
                         if(lockedId) {
                             lockedId = null; 
                             document.getElementById('lock-indicator').style.display = 'none';
@@ -758,46 +792,28 @@
         activePaths = []; 
         map.removeFeatureState({source: 'grid-source'});
         
+        if(lockedId && lockedId != id) {
+            map.setFeatureState({source: 'grid-source', id: lockedId}, {focused: true, is_core: true});
+        }
+        
         hoveredId = id; 
         const stats = pointDataCache[id]; 
         if(!stats) return;
         
         const raw = currentMode === 'driver' ? stats.connections_down : stats.connections_up;
-        let v = [...new Set(raw)].filter(lid => pointDataCache[lid]); 
-        const cs = new Set(v); 
-        cs.add(id);
-        const full = new Set(v); 
-        full.add(id); 
-        let pp = [id, ...v];
+        let validLinked = [...new Set(raw)].filter(lid => pointDataCache[lid]); 
         
-        if(v.length) { 
-            for(let i = 0; i < pp.length - 1; i++) { 
-                const p1 = pointDataCache[pp[i]].centroid;
-                const p2 = pointDataCache[pp[i+1]].centroid;
-                const d = Math.sqrt(Math.pow(p2[0] - p1[0], 2) + Math.pow(p2[1] - p1[1], 2)); 
-                
-                if(d > 0.35) { 
-                    const st = Math.floor(d / 0.25); 
-                    for(let s = 1; s <= st; s++) { 
-                        const t = s / (st + 1);
-                        const k = getSpatialKey(p1[0] + (p2[0] - p1[0]) * t, p1[1] + (p2[1] - p1[1]) * t); 
-                        if(coordToId[k]) full.add(coordToId[k]); 
-                    } 
-                } 
-            } 
-        }
+        activeIds = [id, ...validLinked]; 
         
-        activeIds = Array.from(full); 
         map.setFeatureState({source: 'grid-source', id}, {focused: true, is_core: true});
         
         activeIds.forEach(lid => { 
             const l = pointDataCache[lid]; 
             if(l) { 
                 const isB = currentMode === 'driver' ? (l.precip_change_pct < 0) : (l.forest_loss_pct > 10); 
-                const isC = cs.has(lid); 
-                map.setFeatureState({source: 'grid-source', id: lid}, {active: true, health: isB ? 'bad' : 'good', is_core: isC, is_interp: !isC}); 
+                map.setFeatureState({source: 'grid-source', id: lid}, {active: true, health: isB ? 'bad' : 'good', is_core: true}); 
                 
-                if(lid !== id && isC) { 
+                if(lid !== id) { 
                     const pc = currentMode === 'driver' ? SOURCE_UNIFORM_COLOR : (isB ? BAD_COLOR : GOOD_COLOR);
                     const s1 = currentMode === 'driver' ? stats.centroid : l.centroid;
                     const e1 = currentMode === 'driver' ? l.centroid : stats.centroid; 
@@ -817,13 +833,13 @@
             }); 
             animationReqId = requestAnimationFrame(animateParticles); 
         }
-        updateUI(id, stats, activeIds);
+        
+        updateUI(id, stats, validLinked);
+        fetchAdminName(id); // Triggers geocoding fallback
     }
 
     function updateUI(id, stats, unique) {
-        let cName = stats.COUNTRY || 'West Africa';
-        let rName = stats.adminName || null;
-        document.getElementById('location-text').innerText = (rName && rName !== "null" && rName !== cName) ? `${rName}, ${cName}` : cName;
+        updateLocationText(id); // Instantly updates with whatever is currently in cache
         
         document.getElementById('node-text').innerText = `DATA NODE: ${id}`;
         document.getElementById('lock-indicator').style.display = lockedId ? 'inline-block' : 'none';
@@ -864,11 +880,7 @@
                 <div style="margin-top:4px; display:flex; flex-direction:column; gap:6px; font-size:11px; color:#acb1b9; background:rgba(0,242,255,0.05); padding:10px; border-radius:6px; border:1px solid rgba(0,242,255,0.1);">
                     <div style="display:flex; align-items:center; gap:8px;">
                         <div style="width:12px; height:12px; background:#00f2ff; opacity:0.85; border-radius:2px; flex-shrink:0;"></div>
-                        <span><strong>Validated Impact Zones:</strong> Discrete data points proving moisture connection.</span>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <div style="width:12px; height:12px; background:#00f2ff; opacity:0.35; border-radius:2px; flex-shrink:0;"></div>
-                        <span><strong>Estimated Wind Paths:</strong> Atmospheric trajectories bridging the gaps between data points.</span>
+                        <span><strong>Validated Impact Zones:</strong> Downwind regions where rainfall was observed.</span>
                     </div>
                 </div>
             `;
@@ -897,6 +909,7 @@
             <strong>Target Question:</strong><br>
             <span style="color:#a5d5d8;">${tQ}</span>
             <span class="policy"><strong>Policy Insight:</strong><br>${dT}</span>
+            <span style="color:#a5d5d8; font-size: 10px; display: block; margin-top: 8px;">Note: Animated particles are a computer-generated visual aid to illustrate atmospheric connections and do not represent measured wind trajectories.</span>
         `;
     }
 
@@ -927,7 +940,7 @@
             document.getElementById('analytics-content').style.display = 'none'; 
             document.getElementById('disclaimer-content').style.display = 'block'; 
             
-            document.getElementById('location-text').innerText = "West Africa Eco-Climatic Dashboard";
+            document.getElementById('location-text').innerText = "West Africa Dashboard";
             document.getElementById('node-text').innerText = "WAITING FOR INPUT";
         } else if(currentMode) { 
             map.setFilter('grid-primary', ['!=', 'id', 'null']); 
@@ -936,7 +949,7 @@
             document.getElementById('sink-chart-wrapper').style.display = 'none'; 
             document.getElementById('opacity-legend-container').innerHTML = ''; 
             
-            document.getElementById('location-text').innerText = "West Africa Eco-Climatic Dashboard";
+            document.getElementById('location-text').innerText = "West Africa Dashboard";
             document.getElementById('node-text').innerText = "WAITING FOR INPUT";
         }
     }
@@ -963,7 +976,11 @@
         useMetric = !useMetric; 
         document.getElementById('btn-unit').innerText = useMetric ? "KM" : "MI"; 
         const n = lockedId || hoveredId; 
-        if(n && currentMode && pointDataCache[n]) updateUI(n, pointDataCache[n], activeIds); 
+        if(n && currentMode && pointDataCache[n]) {
+            const raw = currentMode === 'driver' ? pointDataCache[n].connections_down : pointDataCache[n].connections_up;
+            let validLinked = [...new Set(raw)].filter(lid => pointDataCache[lid]); 
+            updateUI(n, pointDataCache[n], validLinked); 
+        }
     };
 
     window.zoomToCountry = (country) => {
@@ -1041,7 +1058,7 @@
                 
                 map.setPaintProperty('grid-primary', 'fill-opacity', [
                     'interpolate', ['linear'], ['abs', ['coalesce', ['get', 'precip_change_pct'], 0]], 
-                    0, 0.15, 5, 0.45, 15, 0.85
+                    0, 0.12, 5, 0.45, 15, 0.85
                 ]); 
                 document.getElementById('legend-title').innerText = 'Precipitation Delta'; 
                 document.getElementById('legend-bar').style.background = 'linear-gradient(to right, #550b1d, #ffbcaf, #ffffff)'; 
