@@ -128,18 +128,16 @@
         .chart-container { position: relative; width: 100%; margin-top: 5px; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 15px; box-sizing: border-box; display: flex; flex-direction: column; gap: 8px; }
         .chart-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 5px;}
         .legend-bar-item { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #ccc; }
-        .dot { width: 8px; height: 8px; border-radius: 1px; }
+        .dot { width: 8px; height: 8px; border-radius: 1px; flex-shrink: 0; }
 
         .css-bar-chart-container { width: 100%; height: 28px; background: rgba(255,255,255,0.05); border-radius: 4px; display: flex; overflow: hidden; margin-top: 4px; border: 1px solid rgba(255,255,255,0.1); }
         .css-bar { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; transition: width 0.4s ease; overflow: hidden; white-space: nowrap; }
-        .css-bar-bad { background: #ff0000; color: #fff; }
-        .css-bar-good { background: #ffffff; color: #000; }
 
         .info-wrapper { position: relative; display: inline-flex; align-items: center; justify-content: center; }
         .info-trigger { cursor: help; opacity: 0.5; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; width: 14px; height: 14px; }
         .info-trigger:hover { opacity: 1; }
         
-        .tooltip-content { position: absolute; width: 230px; background: rgba(13, 17, 23, 0.98); border: 1px solid rgba(255,255,255,0.2); color: #e6edf3; font-size: 11px; padding: 10px; border-radius: 6px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(5px); opacity: 0; visibility: hidden; transition: all 0.2s; pointer-events: none; z-index: 300; line-height: 1.4; text-align: left; font-weight: 400; text-transform: none; }
+        .tooltip-content { position: absolute; width: 260px; background: rgba(13, 17, 23, 0.98); border: 1px solid rgba(255,255,255,0.2); color: #e6edf3; font-size: 11px; padding: 10px; border-radius: 6px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(5px); opacity: 0; visibility: hidden; transition: all 0.2s; pointer-events: none; z-index: 300; line-height: 1.4; text-align: left; font-weight: 400; text-transform: none; }
         .info-wrapper:hover .tooltip-content { opacity: 1; visibility: visible; }
         
         .tooltip-up { bottom: 130%; left: 50%; transform: translateX(-50%); margin-bottom: 8px; }
@@ -203,7 +201,7 @@
 
 <div id="welcome-modal" class="modal-overlay">
     <div class="modal-content">
-        <span class="modal-tag">Pilot Dashboard v1.87</span>
+        <span class="modal-tag">Pilot Dashboard v1.91</span>
         <h2 class="modal-title">Terrestrial Moisture Recycling</h2>
         
         <p class="modal-text">Welcome. This interactive platform visualizes the physical causality between forest ecosystems and downwind rainfall stability. By quantifying these invisible connections, the tool supports evidence-based planning across critical sectors—including <strong>water resource management, energy infrastructure, urban development, and disaster risk mitigation</strong>—throughout West Africa.</p>
@@ -345,13 +343,29 @@
             <div id="opacity-legend-container"></div>
             
             <div class="chart-container" id="sink-chart-wrapper">
-                <div class="chart-header">
-                    <div class="legend-bar-item"><div class="dot" style="background:#ff0000;"></div> Degraded Source (Risk): <strong id="pct-bad">0%</strong></div>
-                    <div class="legend-bar-item"><div class="dot" style="background:#ffffff;"></div> Intact Source (Neutral): <strong id="pct-good">0%</strong></div>
+                
+                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                    <div style="font-size: 10px; font-weight: 700; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px;">Upwind Source Integrity Breakdown</div>
+                    <div class="info-wrapper">
+                        <div class="info-trigger">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8b949e" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                        </div>
+                        <div class="tooltip-content tooltip-up">This chart breaks down the total upwind area supplying moisture to the selected grid. The percentages indicate the exact proportion of that total source footprint experiencing specific levels of historical forest cover loss.</div>
+                    </div>
                 </div>
+
+                <div class="chart-header" style="flex-wrap: wrap; gap: 8px;">
+                    <div class="legend-bar-item" style="flex: 1 1 45%; min-width: 190px;"><div class="dot" style="background:#ffffff;"></div> Intact (&lt;5%):&nbsp;<strong id="pct-intact">0%</strong></div>
+                    <div class="legend-bar-item" style="flex: 1 1 45%; min-width: 190px;"><div class="dot" style="background:#9ca3af;"></div> Slight (5-10%):&nbsp;<strong id="pct-slight">0%</strong></div>
+                    <div class="legend-bar-item" style="flex: 1 1 45%; min-width: 190px;"><div class="dot" style="background:#ff6b6b;"></div> Moderate (10-20%):&nbsp;<strong id="pct-moderate">0%</strong></div>
+                    <div class="legend-bar-item" style="flex: 1 1 45%; min-width: 190px;"><div class="dot" style="background:#ff0000;"></div> Severe (&gt;20%):&nbsp;<strong id="pct-severe">0%</strong></div>
+                </div>
+                
                 <div class="css-bar-chart-container">
-                    <div id="css-bar-bad" class="css-bar css-bar-bad"></div>
-                    <div id="css-bar-good" class="css-bar css-bar-good"></div>
+                    <div id="css-bar-intact" class="css-bar" style="background: #ffffff; color: #000;"></div>
+                    <div id="css-bar-slight" class="css-bar" style="background: #9ca3af; color: #fff;"></div>
+                    <div id="css-bar-moderate" class="css-bar" style="background: #ff6b6b; color: #fff;"></div>
+                    <div id="css-bar-severe" class="css-bar" style="background: #ff0000; color: #fff;"></div>
                 </div>
             </div>
         </div>
@@ -392,7 +406,7 @@
 
     const PALETTE_FOREST = ['step', ['get', 'forest_loss_pct'], '#0a4d1c', 0.1, '#238636', 2, '#7ee787', 5, '#ffd33d', 10, '#f66a0a', 20, '#bd2c00'];
     const PALETTE_PRECIP = ['step', ['get', 'precip_change_pct'], '#550b1d', -15, '#933b41', -10, '#cf7c79', -5, '#ffbcaf', -2, '#ffffff', 2, '#a5d5d8', 5, '#73a2c6'];
-    const PALETTE_SINK_REVEAL = ['step', ['get', 'forest_loss_pct'], '#ffffff', 5, '#e2e8f0', 10, '#ff6b6b', 20, '#ff0000'];
+    const PALETTE_SINK_REVEAL = ['step', ['get', 'forest_loss_pct'], '#ffffff', 5, '#9ca3af', 10, '#ff6b6b', 20, '#ff0000'];
     
     const SOURCE_UNIFORM_COLOR = '#00f2ff'; 
     const BAD_COLOR = '#ff0000'; 
@@ -484,7 +498,6 @@
         animationReqId = requestAnimationFrame(animateParticles);
     }
 
-    // MAPBOX GEOCODING FIX: Dynamically retrieves accurate region and country if missing
     async function fetchAdminName(id) {
         if (!pointDataCache[id] || pointDataCache[id].fetching) return;
 
@@ -657,7 +670,14 @@
                     'paint': { 
                         'line-width': 2.5, 
                         'line-dasharray': [2, 1], 
-                        'line-color': ['case', ['==', ['feature-state', 'health'], 'bad'], BAD_COLOR, GOOD_COLOR], 
+                        'line-color': [
+                            'match', ['feature-state', 'severity'], 
+                            'severe', '#ff0000', 
+                            'moderate', '#ff6b6b', 
+                            'slight', '#9ca3af', 
+                            'intact', '#ffffff', 
+                            '#ffffff' 
+                        ], 
                         'line-opacity': ['case', ['boolean', ['feature-state', 'active'], false], 1, 0] 
                     } 
                 });
@@ -810,11 +830,23 @@
         activeIds.forEach(lid => { 
             const l = pointDataCache[lid]; 
             if(l) { 
-                const isB = currentMode === 'driver' ? (l.precip_change_pct < 0) : (l.forest_loss_pct > 10); 
-                map.setFeatureState({source: 'grid-source', id: lid}, {active: true, health: isB ? 'bad' : 'good', is_core: true}); 
+                let sev = 'intact';
+                let pc = '#ffffff';
+                
+                if (currentMode === 'driver') {
+                    sev = (l.precip_change_pct < 0) ? 'severe' : 'intact'; 
+                    pc = SOURCE_UNIFORM_COLOR;
+                } else {
+                    const loss = l.forest_loss_pct || 0;
+                    if (loss >= 20) { sev = 'severe'; pc = '#ff0000'; }
+                    else if (loss >= 10) { sev = 'moderate'; pc = '#ff6b6b'; }
+                    else if (loss >= 5) { sev = 'slight'; pc = '#9ca3af'; }
+                    else { sev = 'intact'; pc = '#ffffff'; }
+                }
+
+                map.setFeatureState({source: 'grid-source', id: lid}, {active: true, severity: sev, is_core: true}); 
                 
                 if(lid !== id) { 
-                    const pc = currentMode === 'driver' ? SOURCE_UNIFORM_COLOR : (isB ? BAD_COLOR : GOOD_COLOR);
                     const s1 = currentMode === 'driver' ? stats.centroid : l.centroid;
                     const e1 = currentMode === 'driver' ? l.centroid : stats.centroid; 
                     activePaths.push({start: s1, end: e1, color: pc}); 
@@ -835,11 +867,11 @@
         }
         
         updateUI(id, stats, validLinked);
-        fetchAdminName(id); // Triggers geocoding fallback
+        fetchAdminName(id);
     }
 
     function updateUI(id, stats, unique) {
-        updateLocationText(id); // Instantly updates with whatever is currently in cache
+        updateLocationText(id);
         
         document.getElementById('node-text').innerText = `DATA NODE: ${id}`;
         document.getElementById('lock-indicator').style.display = lockedId ? 'inline-block' : 'none';
@@ -848,12 +880,22 @@
         document.getElementById('passport-header').style.opacity = 1; 
         document.getElementById('legend-panel').style.opacity = 1;
         
-        let bad = 0, maxD = 0, totA = 0, badA = 0; 
+        let areaIntact = 0, areaSlight = 0, areaModerate = 0, areaSevere = 0;
+        let maxD = 0, totA = 0, sourceBadA = 0; 
+        
         unique.forEach(lid => { 
             const s = pointDataCache[lid]; 
             if(s) { 
-                const isB = currentMode === 'driver' ? (s.precip_change_pct < 0) : (s.forest_loss_pct > 10); 
-                if(isB) { bad++; badA += s.areaKm; } 
+                if (currentMode === 'driver') {
+                    if (s.precip_change_pct < 0) sourceBadA += s.areaKm;
+                } else {
+                    const loss = s.forest_loss_pct || 0;
+                    if (loss < 5) areaIntact += s.areaKm;
+                    else if (loss < 10) areaSlight += s.areaKm;
+                    else if (loss < 20) areaModerate += s.areaKm;
+                    else areaSevere += s.areaKm;
+                }
+                
                 const d = getDistanceKm(stats.centroid, s.centroid); 
                 if(d > maxD) maxD = d; 
                 totA += s.areaKm; 
@@ -868,11 +910,9 @@
         document.getElementById('val-surface').innerText = `${vT.toLocaleString()} ${uA}`; 
         document.getElementById('val-distance').innerText = `${vD.toLocaleString()} ${uD}`;
         
-        const badP = totA > 0 ? Math.round((badA / totA) * 100) : 0;
-        const goodP = totA > 0 ? 100 - badP : 0;
-        
         let dT = '', tQ = ''; 
         if(currentMode === 'driver') {
+            const badP = totA > 0 ? Math.round((sourceBadA / totA) * 100) : 0;
             tQ = "Active Consequences: If forest loss occurs here, where is rainfall stability threatened?";
             dT = `Deforestation in this node threatens the atmospheric moisture supply of <strong>${unique.length} downwind regions</strong> (spanning ${vT.toLocaleString()} ${uA}). Currently, <strong>${badP}%</strong> of this dependent footprint is experiencing precipitation deficits.`;
             
@@ -886,24 +926,41 @@
             `;
             document.getElementById('sink-chart-wrapper').style.display = 'none';
         } else {
+            const pctIntact = totA > 0 ? Math.round((areaIntact / totA) * 100) : 0;
+            const pctSlight = totA > 0 ? Math.round((areaSlight / totA) * 100) : 0;
+            const pctModerate = totA > 0 ? Math.round((areaModerate / totA) * 100) : 0;
+            const pctSevere = totA > 0 ? Math.round((areaSevere / totA) * 100) : 0;
+            
+            const degradedGrids = unique.filter(id => pointDataCache[id] && pointDataCache[id].forest_loss_pct >= 10).length;
+
             tQ = "Passive Attribution: Where has upwind deforestation caused rainfall loss in this grid?";
-            dT = bad > 0 
-                ? `The moisture reduction here is attributed to land-use changes in the <strong>${bad} degraded source grids</strong> highlighted upwind.` 
+            dT = degradedGrids > 0 
+                ? `The moisture reduction here is attributed to land-use changes in the <strong>${degradedGrids} degraded source grids</strong> highlighted upwind.` 
                 : `The moisture inflow for this region is <strong>currently secure</strong>, originating from <strong>${unique.length} intact upwind source grids</strong>.`;
             
             document.getElementById('opacity-legend-container').innerHTML = ''; 
             document.getElementById('sink-chart-wrapper').style.display = 'flex';
             
-            document.getElementById('pct-bad').innerText = `${badP}%`; 
-            document.getElementById('pct-good').innerText = `${goodP}%`;
-            document.getElementById('css-bar-bad').style.width = `${badP}%`; 
-            document.getElementById('css-bar-good').style.width = `${goodP}%`;
+            const displayIntact = Math.round(useMetric ? areaIntact : areaIntact * 0.386).toLocaleString();
+            const displaySlight = Math.round(useMetric ? areaSlight : areaSlight * 0.386).toLocaleString();
+            const displayModerate = Math.round(useMetric ? areaModerate : areaModerate * 0.386).toLocaleString();
+            const displaySevere = Math.round(useMetric ? areaSevere : areaSevere * 0.386).toLocaleString();
+
+            document.getElementById('pct-intact').innerText = `${pctIntact}% (${displayIntact} ${uA})`; 
+            document.getElementById('pct-slight').innerText = `${pctSlight}% (${displaySlight} ${uA})`; 
+            document.getElementById('pct-moderate').innerText = `${pctModerate}% (${displayModerate} ${uA})`; 
+            document.getElementById('pct-severe').innerText = `${pctSevere}% (${displaySevere} ${uA})`; 
             
-            const dA = useMetric ? badA : badA * 0.386;
-            const gA = useMetric ? totA - badA : (totA - badA) * 0.386;
+            document.getElementById('css-bar-intact').style.width = `${pctIntact}%`; 
+            document.getElementById('css-bar-slight').style.width = `${pctSlight}%`; 
+            document.getElementById('css-bar-moderate').style.width = `${pctModerate}%`; 
+            document.getElementById('css-bar-severe').style.width = `${pctSevere}%`; 
             
-            document.getElementById('css-bar-bad').innerText = badP > 15 ? `${Math.round(dA).toLocaleString()} ${uA}` : ''; 
-            document.getElementById('css-bar-good').innerText = goodP > 15 ? `${Math.round(gA).toLocaleString()} ${uA}` : '';
+            // INSIDE-BAR PERCENTAGE FIX: Only show text if width is > 8% so it fits nicely
+            document.getElementById('css-bar-intact').innerText = pctIntact >= 8 ? `${pctIntact}%` : ''; 
+            document.getElementById('css-bar-slight').innerText = pctSlight >= 8 ? `${pctSlight}%` : ''; 
+            document.getElementById('css-bar-moderate').innerText = pctModerate >= 8 ? `${pctModerate}%` : ''; 
+            document.getElementById('css-bar-severe').innerText = pctSevere >= 8 ? `${pctSevere}%` : ''; 
         }
         document.getElementById('target-box').innerHTML = `
             <strong>Target Question:</strong><br>
@@ -1054,7 +1111,14 @@
                 document.getElementById('legend-metrics').innerHTML = '<span>0% (Intact)</span><span>20%+ (Loss)</span>'; 
             } else { 
                 map.setPaintProperty('grid-reveal', 'fill-color', revealPalette);
-                map.setPaintProperty('grid-links', 'line-color', ['case', ['==', ['feature-state', 'health'], 'bad'], BAD_COLOR, GOOD_COLOR]);
+                map.setPaintProperty('grid-links', 'line-color', [
+                    'match', ['feature-state', 'severity'], 
+                    'severe', '#ff0000', 
+                    'moderate', '#ff6b6b', 
+                    'slight', '#9ca3af', 
+                    'intact', '#ffffff', 
+                    '#ffffff'
+                ]);
                 
                 map.setPaintProperty('grid-primary', 'fill-opacity', [
                     'interpolate', ['linear'], ['abs', ['coalesce', ['get', 'precip_change_pct'], 0]], 
