@@ -95,13 +95,17 @@
         .cb-divider { width: 1px; height: 16px; background: rgba(255,255,255,0.1); margin: 0 2px; }
         .cb-group { display: flex; align-items: center; gap: 2px; }
 
+        /* EXPANDED WIND CONTROLS & LEGEND */
         #wind-slider-container {
-            display: none; align-items: center; justify-content: space-between; gap: 10px;
+            display: none; flex-direction: column; gap: 12px;
             background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.15);
-            border-radius: 8px; padding: 8px 12px; margin-bottom: 6px;
+            border-radius: 8px; padding: 12px; margin-bottom: 6px;
         }
+        .wind-control-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; }
         #wind-slider-container span { font-size: 9px; color: #8b949e; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
         #wind-opacity-slider { flex: 1; cursor: pointer; accent-color: var(--accent); }
+        .wind-legend-bar { height: 6px; width: 100%; border-radius: 3px; background: linear-gradient(to right, #3288bd, #66c2a5, #abdda4, #fdae61, #d53e4f); margin-top: 4px; }
+        .wind-legend-labels { display: flex; justify-content: space-between; font-size: 9px; font-weight: 600; color: #8b949e; margin-top: 4px; }
 
         .passport-header { display: flex; flex-direction: column; gap: 6px; margin-bottom: 5px; padding-bottom: 12px; border-bottom: 1px solid var(--border); opacity: 0; transition: opacity 0.3s; }
         .passport-row { display: flex; justify-content: space-between; align-items: center; font-size: 11px; }
@@ -209,7 +213,7 @@
 
 <div id="welcome-modal" class="modal-overlay">
     <div class="modal-content">
-        <span class="modal-tag">Pilot Dashboard v1.95</span>
+        <span class="modal-tag">Pilot Dashboard v1.96</span>
         <h2 class="modal-title">Terrestrial Moisture Recycling</h2>
         
         <p class="modal-text">Welcome. This interactive platform visualizes the physical causality between forest ecosystems and downwind rainfall stability. By quantifying these invisible connections, the tool supports evidence-based planning across critical sectors—including <strong>water resource management, energy infrastructure, urban development, and disaster risk mitigation</strong>—throughout West Africa.</p>
@@ -298,7 +302,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#8b949e" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                     </div>
                     <div class="tooltip-content tooltip-header">
-                        <strong>Atmospheric Wind Overlay:</strong><br>Toggle dynamic global wind patterns.<br><br><span style="color:#a5d5d8">Note: Currently displaying an advanced vector-field simulation of the ITCZ (Harmattan & Monsoon convergence) for prototype phase.</span>
+                        <strong>Atmospheric Wind Overlay:</strong><br>Toggle dynamic global wind patterns.<br><br><span style="color:#a5d5d8">Data Source: Simulated based on NOAA GFS (Global Forecast System) historical averages.</span>
                     </div>
                 </div>
             </div>
@@ -332,8 +336,20 @@
     </div>
 
     <div id="wind-slider-container">
-        <span>Wind Opacity</span>
-        <input type="range" id="wind-opacity-slider" min="0" max="1" step="0.05" value="0.7">
+        <div class="wind-control-row">
+            <span>Wind Opacity</span>
+            <input type="range" id="wind-opacity-slider" min="0" max="1" step="0.05" value="0.7">
+        </div>
+        <div style="width: 100%;">
+            <div style="display: flex; justify-content: space-between; font-size: 9px; font-weight: 800; color: #777; text-transform: uppercase; margin-bottom: 4px;">
+                <span>Wind Intensity</span>
+            </div>
+            <div class="wind-legend-bar"></div>
+            <div class="wind-legend-labels">
+                <span>Calm</span>
+                <span>Fast</span>
+            </div>
+        </div>
     </div>
 
     <div style="margin-bottom: 12px; margin-top: 4px;">
@@ -471,7 +487,7 @@
     let animationReqId = null, activePaths = [];
     
     let isForestVisible = false, isSatelliteVisible = false, isUrbanVisible = false, useMetric = true; 
-    let isLinkAnimVisible = true; // NEW STATE FOR CONNECTION ANIMATION
+    let isLinkAnimVisible = true; 
 
     // UNIFIED WIND OVERLAY VARIABLES
     let isWindVisible = false;
@@ -568,17 +584,12 @@
         const midX = start[0] + dx * 0.5;
         const midY = start[1] + dy * 0.5;
 
-        // Sample static wind vector at midpoint to influence curve direction
         const w = getWindVector(midX, midY, 0); 
         
-        // Find normal vector of the straight line
         let nx = -dy / dist;
         let ny = dx / dist;
 
-        // Project wind vector onto the normal to calculate deflection
         const dot = (w.u * nx + w.v * ny);
-
-        // Control point offset. Scaled by distance so longer paths curve more.
         const offsetMag = dot * dist * 0.4;
 
         const cx = midX + nx * offsetMag;
@@ -588,7 +599,6 @@
         const steps = 40;
         for(let i=0; i<=steps; i++) {
             const t = i / steps;
-            // Quadratic Bezier Formula
             const x = Math.pow(1-t, 2)*start[0] + 2*(1-t)*t*cx + Math.pow(t, 2)*end[0];
             const y = Math.pow(1-t, 2)*start[1] + 2*(1-t)*t*cy + Math.pow(t, 2)*end[1];
             points.push([x, y]);
@@ -596,7 +606,7 @@
         return points;
     }
 
-    // --- LAGRANGIAN DATA PARTICLES (Now following wind-blown curves) ---
+    // --- LAGRANGIAN DATA PARTICLES ---
     function animateParticles() {
         if (!activePaths.length || !isLinkAnimVisible) {
             animationReqId = requestAnimationFrame(animateParticles);
@@ -608,7 +618,6 @@
             const offset = (i * 137) % 1000; 
             const progress = ((performance.now() * speed * 1000 + offset) % 1000) / 1000;
             
-            // Interpolate position along the pre-computed wind-blown bezier curve
             const curveLen = path.curve.length - 1;
             const index = progress * curveLen;
             const floorIdx = Math.floor(index);
@@ -926,9 +935,15 @@
                     'filter': ['==', 'ISO_A3', 'NONE'] 
                 });
                 
-                // DATA PARTICLES
-                map.addSource('flow-lines', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
-                map.addSource('flow-particles', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+                map.addSource('flow-lines', { 
+                    type: 'geojson', 
+                    data: { type: 'FeatureCollection', features: [] } 
+                });
+                
+                map.addSource('flow-particles', { 
+                    type: 'geojson', 
+                    data: { type: 'FeatureCollection', features: [] } 
+                });
                 
                 map.addLayer({ 
                     'id': 'flow-lines-layer', 
@@ -947,7 +962,9 @@
                     'type': 'circle', 
                     'source': 'flow-particles', 
                     'paint': { 
-                        'circle-color': ['get', 'color'], 'circle-radius': 3, 'circle-blur': 0.3, 
+                        'circle-color': ['get', 'color'], 
+                        'circle-radius': 3, 
+                        'circle-blur': 0.3, 
                         'circle-opacity': ['interpolate', ['linear'], ['get', 'progress'], 0, 0, 0.1, 1, 0.9, 1, 1, 0] 
                     } 
                 });
@@ -1090,7 +1107,6 @@
                     const s1 = currentMode === 'driver' ? stats.centroid : l.centroid;
                     const e1 = currentMode === 'driver' ? l.centroid : stats.centroid; 
                     
-                    // GENERATE CURVE BASED ON WIND MATH INSTEAD OF STRAIGHT LINE
                     const curve = generateWindBlownCurve(s1, e1);
 
                     activePaths.push({
@@ -1296,7 +1312,6 @@
         }
     };
 
-    // LINK ANIMATION TOGGLE (Kill Switch)
     window.toggleLinkAnim = () => {
         isLinkAnimVisible = !isLinkAnimVisible;
         document.getElementById('btn-link-anim').classList.toggle('active');
